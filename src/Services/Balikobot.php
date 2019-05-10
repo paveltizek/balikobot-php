@@ -49,14 +49,16 @@ class Balikobot
      *
      * @param \Inspirum\Balikobot\Model\Aggregates\PackageCollection $packages
      *
+     * @param string $labelsUrl
      * @return \Inspirum\Balikobot\Model\Aggregates\OrderedPackageCollection|\Inspirum\Balikobot\Model\Values\OrderedPackage[]
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
-    public function addPackages(PackageCollection $packages): OrderedPackageCollection
+    public function addPackages(PackageCollection $packages, string &$labelsUrl): OrderedPackageCollection
     {
         $response = $this->client->addPackages($packages->getShipper(), $packages->toArray());
 
+        $labelsUrl = array_pop($response);
         // create return value object
         $orderedPackages = new OrderedPackageCollection();
 

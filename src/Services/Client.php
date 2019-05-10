@@ -45,7 +45,7 @@ class Client
             throw new BadRequestException($response);
         }
 
-        unset($response['labels_url']);
+//        unset($response['labels_url']);
         unset($response['status']);
 
         return $response;

@@ -47,13 +47,17 @@ class PackageCollection implements IteratorAggregate, Countable
      *
      * @param \Inspirum\Balikobot\Model\Values\Package $package
      */
-    public function add(Package $package): void
+    public function add(Package $package, bool $addCollectionEid = true): void
     {
         // clone package
         $package = clone $package;
 
-        // set collection EID
-        $package->setEID($this->eid);
+        if ($addCollectionEid) {
+            // set collection EID
+            $package->setEID($this->eid);
+        }else{
+//            $package->setEID($this->newEID());
+        }
 
         // add package to collection
         $this->packages[] = $package;
