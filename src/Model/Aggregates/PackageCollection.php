@@ -56,7 +56,7 @@ class PackageCollection implements IteratorAggregate, Countable
             // set collection EID
             $package->setEID($this->eid);
         }else{
-//            $package->setEID($this->newEID());
+            $package->setEID($this->newEID());
         }
 
         // add package to collection
