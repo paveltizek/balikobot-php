@@ -2,7 +2,7 @@
 
 namespace Inspirum\Balikobot\Definitions;
 
-class Request
+final class Request
 {
     /**
      * Add a package
@@ -110,7 +110,7 @@ class Request
     public const BRANCH_LOCATOR = 'branchlocator';
 
     /**
-     * List of services with countries which support cash-on-delivery payment type.
+     * List of services with countries which support cash-on-delivery payment type
      *
      * @var string
      */
@@ -143,4 +143,25 @@ class Request
      * @var string
      */
     public const ADR_UNITS = 'adrunits';
+
+    /**
+     * List of activated services for production API keys
+     *
+     * @var string
+     */
+    public const ACTIVATEDSERVICES = 'activatedservices';
+
+    /**
+     * Order shipments from place B (typically supplier / previous consignee) to place A (shipping point)
+     *
+     * @var string
+     */
+    public const B2A = 'b2a';
+
+    /**
+     * Get PDF with signed consignment delivery document by the recipient
+     *
+     * @var string
+     */
+    public const PROOF_OF_DELIVERY = 'pod';
 }

@@ -4,7 +4,7 @@ namespace Inspirum\Balikobot\Definitions;
 
 use InvalidArgumentException;
 
-class Country
+final class Country
 {
     /**
      * Afghanistan
@@ -1748,7 +1748,7 @@ class Country
     /**
      * Countries
      *
-     * @return array
+     * @return array<string>
      */
     public static function all(): array
     {
@@ -2006,7 +2006,7 @@ class Country
     }
 
     /**
-     * Validate country code.
+     * Validate country code
      *
      * @param string $code
      *

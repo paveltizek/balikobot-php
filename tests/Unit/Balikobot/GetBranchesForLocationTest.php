@@ -38,6 +38,44 @@ class GetBranchesForLocationTest extends AbstractBalikobotTestCase
         $this->assertTrue(true);
     }
 
+    public function testMakeRequestWithTypeParameter()
+    {
+        $requester = $this->newRequesterWithMockedRequestMethod(200, [
+            'status'   => 200,
+            'branches' => [],
+        ]);
+
+        $service = new Balikobot($requester);
+
+        $branches = $service->getBranchesForLocation(
+            'pbh',
+            'DE',
+            'Berlin',
+            null,
+            'Schönwalder',
+            null,
+            null,
+            'postfiliale'
+        );
+
+        $branches->valid();
+
+        $requester->shouldHaveReceived(
+            'request',
+            [
+                'https://api.balikobot.cz/pbh/branchlocator',
+                [
+                    'country' => 'DE',
+                    'city'    => 'Berlin',
+                    'street'  => 'Schönwalder',
+                    'type'    => 'postfiliale',
+                ],
+            ]
+        );
+
+        $this->assertTrue(true);
+    }
+
     public function testResponseData()
     {
         $requester = $this->newRequesterWithMockedRequestMethod(200, [
@@ -45,11 +83,11 @@ class GetBranchesForLocationTest extends AbstractBalikobotTestCase
             'branches' => [
                 [
                     'id'  => 1,
-                    'zip' => "11000",
+                    'zip' => '11000',
                 ],
                 [
                     'id'  => 876,
-                    'zip' => "12000",
+                    'zip' => '12000',
                 ],
             ],
         ]);

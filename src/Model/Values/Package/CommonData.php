@@ -7,7 +7,7 @@ use Inspirum\Balikobot\Definitions\Option;
 trait CommonData
 {
     /**
-     * Set the item at a given offset.
+     * Set the item at a given offset
      *
      * @param string $key
      * @param mixed  $value
@@ -17,7 +17,7 @@ trait CommonData
     abstract public function offsetSet($key, $value);
 
     /**
-     * Get an item at a given offset.
+     * Get an item at a given offset
      *
      * @param string $key
      *
@@ -26,7 +26,16 @@ trait CommonData
     abstract public function offsetGet($key);
 
     /**
-     * Set EID.
+     * Determine if an item exists at an offset
+     *
+     * @param string $key
+     *
+     * @return bool
+     */
+    abstract public function offsetExists($key);
+
+    /**
+     * Set EID
      *
      * @param string $id
      *
@@ -38,13 +47,23 @@ trait CommonData
     }
 
     /**
-     * Get EID.
+     * Get EID
      *
      * @return string|null
      */
     public function getEID(): ?string
     {
         return $this->offsetGet(Option::EID);
+    }
+
+    /**
+     * Get EID
+     *
+     * @return bool
+     */
+    public function hasEID(): bool
+    {
+        return $this->offsetExists(Option::EID);
     }
 
     /**
@@ -78,7 +97,7 @@ trait CommonData
     }
 
     /**
-     * @param array $services
+     * @param array<string> $services
      *
      * @return void
      */
@@ -117,5 +136,15 @@ trait CommonData
     public function setReturnTrack(bool $returnTrack = true): void
     {
         $this->offsetSet(Option::RETURN_TRACK, (int) $returnTrack);
+    }
+
+    /**
+     * @param bool $returnCarrierId
+     *
+     * @return void
+     */
+    public function setReturnFinalCarrierId(bool $returnCarrierId = true): void
+    {
+        $this->offsetSet(Option::RETURN_FINAL_CARRIER_ID, (int) $returnCarrierId);
     }
 }

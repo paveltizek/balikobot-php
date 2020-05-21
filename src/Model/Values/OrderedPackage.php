@@ -5,21 +5,21 @@ namespace Inspirum\Balikobot\Model\Values;
 class OrderedPackage
 {
     /**
-     * Package ID.
+     * Package ID
      *
      * @var int
      */
     private $packageId;
 
     /**
-     * Package batch ID (EID).
+     * Package batch ID (EID)
      *
      * @var string
      */
     private $batchId;
 
     /**
-     * Shipper.
+     * Shipper
      *
      * @var string
      */
@@ -33,7 +33,7 @@ class OrderedPackage
     private $carrierId;
 
     /**
-     * Track URL.
+     * Track URL
      *
      * @var string|null
      */
@@ -47,30 +47,46 @@ class OrderedPackage
     private $labelUrl;
 
     /**
-     * Carrier ID Swap.
+     * Carrier ID Swap
      *
      * @var string|null
      */
     private $carrierIdSwap;
 
     /**
-     * Pieces.
+     * Pieces
      *
-     * @var array
+     * @var array<string>
      */
     private $pieces;
 
     /**
-     * OrderedPackage constructor.
+     * Final carrier ID
      *
-     * @param int         $packageId
-     * @param string      $shipper
-     * @param string      $batchId
-     * @param string      $carrierId
-     * @param string|null $trackUrl
-     * @param string|null $labelUrl
-     * @param string|null $carrierIdSwap
-     * @param array       $pieces
+     * @var string|null
+     */
+    private $finalCarrierId;
+
+    /**
+     * Final track URL
+     *
+     * @var string|null
+     */
+    private $finalTrackUrl;
+
+    /**
+     * OrderedPackage constructor
+     *
+     * @param int           $packageId
+     * @param string        $shipper
+     * @param string        $batchId
+     * @param string        $carrierId
+     * @param string|null   $trackUrl
+     * @param string|null   $labelUrl
+     * @param string|null   $carrierIdSwap
+     * @param array<string> $pieces
+     * @param string|null   $finalCarrierId
+     * @param string|null   $finalTrackUrl
      */
     public function __construct(
         int $packageId,
@@ -80,16 +96,20 @@ class OrderedPackage
         string $trackUrl = null,
         string $labelUrl = null,
         string $carrierIdSwap = null,
-        array $pieces = []
+        array $pieces = [],
+        string $finalCarrierId = null,
+        string $finalTrackUrl = null
     ) {
-        $this->packageId     = $packageId;
-        $this->shipper       = $shipper;
-        $this->batchId       = $batchId;
-        $this->carrierId     = $carrierId;
-        $this->trackUrl      = $trackUrl;
-        $this->labelUrl      = $labelUrl;
-        $this->carrierIdSwap = $carrierIdSwap;
-        $this->pieces        = $pieces;
+        $this->packageId      = $packageId;
+        $this->shipper        = $shipper;
+        $this->batchId        = $batchId;
+        $this->carrierId      = $carrierId;
+        $this->trackUrl       = $trackUrl;
+        $this->labelUrl       = $labelUrl;
+        $this->carrierIdSwap  = $carrierIdSwap;
+        $this->pieces         = $pieces;
+        $this->finalCarrierId = $finalCarrierId;
+        $this->finalTrackUrl  = $finalTrackUrl;
     }
 
     /**
@@ -141,7 +161,7 @@ class OrderedPackage
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public function getPieces(): array
     {
@@ -157,9 +177,25 @@ class OrderedPackage
     }
 
     /**
-     * @param string $shipper
-     * @param string $eid
-     * @param array  $data
+     * @return string|null
+     */
+    public function getFinalCarrierId(): ?string
+    {
+        return $this->finalCarrierId;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getFinalTrackUrl(): ?string
+    {
+        return $this->finalTrackUrl;
+    }
+
+    /**
+     * @param string              $shipper
+     * @param string              $eid
+     * @param array<string,mixed> $data
      *
      * @return \Inspirum\Balikobot\Model\Values\OrderedPackage
      */
@@ -169,11 +205,13 @@ class OrderedPackage
             $data['package_id'],
             $shipper,
             $eid,
-            $data['carrier_id'],
+            $data['carrier_id'] ?? '',
             $data['track_url'] ?? null,
-            $data['label_url'],
+            $data['label_url'] ?? null,
             $data['carrier_id_swap'] ?? null,
-            $data['pieces'] ?? []
+            $data['pieces'] ?? [],
+            $data['carrier_id_final'] ?? null,
+            $data['track_url_final'] ?? null
         );
     }
 }

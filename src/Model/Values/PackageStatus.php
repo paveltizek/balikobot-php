@@ -23,7 +23,7 @@ class PackageStatus
     private $date;
 
     /**
-     * PackageStatus constructor.
+     * PackageStatus constructor
      *
      * @param int            $id
      * @param string         $name
@@ -61,7 +61,7 @@ class PackageStatus
     }
 
     /**
-     * @param array $data
+     * @param array<string,mixed> $data
      *
      * @return \Inspirum\Balikobot\Model\Values\PackageStatus
      */

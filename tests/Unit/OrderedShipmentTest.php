@@ -15,20 +15,18 @@ class OrderedShipmentTest extends AbstractTestCase
             [1, 67],
             [
                 'order_id'     => 1234,
-                'handover_url' => "/handover",
-                'labels_url'   => "/labels",
-                'file_url'     => "/file",
-            ],
-            new DateTime('2018-10-10 14:00:00')
+                'handover_url' => '/handover',
+                'labels_url'   => '/labels',
+                'file_url'     => '/file',
+            ]
         );
 
         $this->assertEquals('cp', $orderedShipment->getShipper());
         $this->assertEquals(1234, $orderedShipment->getOrderId());
-        $this->assertEquals("/handover", $orderedShipment->getHandoverUrl());
-        $this->assertEquals("/labels", $orderedShipment->getLabelsUrl());
-        $this->assertEquals("/file", $orderedShipment->getFileUrl());
+        $this->assertEquals('/handover', $orderedShipment->getHandoverUrl());
+        $this->assertEquals('/labels', $orderedShipment->getLabelsUrl());
+        $this->assertEquals('/file', $orderedShipment->getFileUrl());
         $this->assertEquals([1, 67], $orderedShipment->getPackageIds());
-        $this->assertEquals(new \DateTime('2018-10-10 14:00:00'), $orderedShipment->getDate());
     }
 
     public function testStaticConstructorWithMissingData()
@@ -38,17 +36,16 @@ class OrderedShipmentTest extends AbstractTestCase
             [1, 67],
             [
                 'order_id'     => 1234,
-                'handover_url' => "/handover",
-                'labels_url'   => "/labels",
+                'handover_url' => '/handover',
+                'labels_url'   => '/labels',
             ]
         );
 
         $this->assertEquals('cp', $orderedShipment->getShipper());
         $this->assertEquals(1234, $orderedShipment->getOrderId());
-        $this->assertEquals("/handover", $orderedShipment->getHandoverUrl());
-        $this->assertEquals("/labels", $orderedShipment->getLabelsUrl());
+        $this->assertEquals('/handover', $orderedShipment->getHandoverUrl());
+        $this->assertEquals('/labels', $orderedShipment->getLabelsUrl());
         $this->assertEquals(null, $orderedShipment->getFileUrl());
         $this->assertEquals([1, 67], $orderedShipment->getPackageIds());
-        $this->assertEquals(null, $orderedShipment->getDate());
     }
 }

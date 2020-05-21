@@ -2,6 +2,7 @@
 
 namespace Inspirum\Balikobot\Tests\Integration\Balikobot;
 
+use DateTime;
 use Inspirum\Balikobot\Definitions\Option;
 use Inspirum\Balikobot\Model\Values\Package;
 use Inspirum\Balikobot\Tests\AbstractTestCase;
@@ -74,6 +75,7 @@ class PackageTest extends AbstractTestCase
         $package->setRecPhone('777666555');
         $package->setWeight(4.3);
         $package->setRequireFullAge(true);
+        $package->setFullAgeMinimum('15');
         $package->setPassword('123456');
         $package->setCreditCard(true);
         $package->setSmsNotification(false);
@@ -99,7 +101,7 @@ class PackageTest extends AbstractTestCase
         $package->setWrapBackCount(6);
         $package->setWrapBackNote('WNote');
         $package->setAppDisp(true);
-        $package->setDeliveryDate(new \DateTime('2018-10-10 10:00:01'));
+        $package->setDeliveryDate(new DateTime('2018-10-10 10:00:01'));
         $package->setReturnTrack(true);
         $package->setBankAccountNumber('56789/0900');
         $package->setContent('content');
@@ -137,6 +139,20 @@ class PackageTest extends AbstractTestCase
         $package->setFlatNumber('1900');
         $package->setDeliveryCosts(15.1);
         $package->setDeliveryCostsEUR(5.31);
+        $package->setRecId('567890');
+        $package->setPickupDate(new DateTime('2019-11-11 10:00:01'));
+        $package->setPickupTimeFrom(new DateTime('2019-11-11 10:00:01'));
+        $package->setPickupTimeTo(new DateTime('2019-11-11 18:10:59'));
+        $package->setPickupTimeTo(new DateTime('2019-11-11 18:10:59'));
+        $package->setInsCurrency('EUR');
+        $package->setDelAccountNumber('456789/0987');
+        $package->setDelZip('17000');
+        $package->setReference('REFEREBCE');
+        $package->setSM1Service(true);
+        $package->setSM1Text('TEST');
+        $package->setSM2Service(false);
+        $package->setReturnFinalCarrierId(true);
+        $package->setBankCode('0800');
 
         $this->assertEquals(
             [
@@ -166,6 +182,7 @@ class PackageTest extends AbstractTestCase
                 Option::REC_PHONE                   => '777666555',
                 Option::WEIGHT                      => 4.3,
                 Option::REQUIRE_FULL_AGE            => 1,
+                Option::FULL_AGE_MINIMUM            => '15',
                 Option::PASSWORD                    => '123456',
                 Option::CREDIT_CARD                 => 1,
                 Option::SMS_NOTIFICATION            => 0,
@@ -229,6 +246,19 @@ class PackageTest extends AbstractTestCase
                 Option::REC_FLAT_NUMBER             => '1900',
                 Option::DELIVERY_COSTS              => 15.1,
                 Option::DELIVERY_COSTS_EUR          => 5.31,
+                Option::REC_ID                      => '567890',
+                Option::PICKUP_DATE                 => '2019-11-11',
+                Option::PICKUP_TIME_FROM            => '10:00',
+                Option::PICKUP_TIME_TO              => '18:10',
+                Option::INS_CURRENCY                => 'EUR',
+                Option::DEL_EXWORKS_ACCOUNT_NUMBER  => '456789/0987',
+                Option::DEL_EXWORKS_ZIP             => '17000',
+                Option::REFERENCE                   => 'REFEREBCE',
+                Option::SM1_SERVICE                 => true,
+                Option::SM1_TEXT                    => 'TEST',
+                Option::SM2_SERVICE                 => false,
+                Option::RETURN_FINAL_CARRIER_ID     => 1,
+                Option::BANK_CODE                   => '0800',
             ],
             $package->toArray()
         );

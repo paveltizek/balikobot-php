@@ -2,7 +2,6 @@
 
 namespace Inspirum\Balikobot\Tests\Unit\Client\Requests;
 
-use DateTime;
 use Inspirum\Balikobot\Exceptions\BadRequestException;
 use Inspirum\Balikobot\Services\Client;
 use Inspirum\Balikobot\Tests\Unit\Client\AbstractClientTestCase;
@@ -54,7 +53,7 @@ class OrderRequestTest extends AbstractClientTestCase
 
         $client = new Client($requester);
 
-        $client->orderShipment('cp', [1, 4], new DateTime('2018-10-10 14:00:00'), 'TEST');
+        $client->orderShipment('cp', [1, 4]);
 
         $requester->shouldHaveReceived(
             'request',
@@ -62,8 +61,6 @@ class OrderRequestTest extends AbstractClientTestCase
                 'https://api.balikobot.cz/cp/order',
                 [
                     'package_ids' => [1, 4],
-                    'date'        => '2018-10-10',
-                    'note'        => 'TEST',
                 ],
             ]
         );
@@ -79,7 +76,6 @@ class OrderRequestTest extends AbstractClientTestCase
             'order_id'     => 29,
             'file_url'     => 'http://csv.balikobot.cz/cp/eNoz0jUFXDABKFwwlQ..',
             'handover_url' => 'http://pdf.balikobot.cz/cp/eNoz0jW0BfwwAe5cMMo.',
-            'labels_url'   => 'http://pdf.balikobot.cz/cp/eNoz0jW0XDBcMAHtXDDJ',
             'package_ids'  => [1],
         ]);
 
@@ -93,7 +89,6 @@ class OrderRequestTest extends AbstractClientTestCase
                 'order_id'     => 29,
                 'file_url'     => 'http://csv.balikobot.cz/cp/eNoz0jUFXDABKFwwlQ..',
                 'handover_url' => 'http://pdf.balikobot.cz/cp/eNoz0jW0BfwwAe5cMMo.',
-                'labels_url'   => 'http://pdf.balikobot.cz/cp/eNoz0jW0XDBcMAHtXDDJ',
                 'package_ids'  => [1],
             ],
             $order

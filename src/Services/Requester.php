@@ -4,38 +4,30 @@ namespace Inspirum\Balikobot\Services;
 
 use GuzzleHttp\Psr7\Response;
 use Inspirum\Balikobot\Contracts\RequesterInterface;
+use Inspirum\Balikobot\Definitions\API;
 use Inspirum\Balikobot\Exceptions\BadRequestException;
 use Inspirum\Balikobot\Exceptions\UnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
+use RuntimeException;
 
 class Requester implements RequesterInterface
 {
     /**
-     * API URL.
-     *
-     * @var string[]
-     */
-    private const API_URL = [
-        'v1' => 'https://api.balikobot.cz/',
-        'v2' => 'https://api.balikobot.cz/v2/',
-    ];
-
-    /**
-     * API User.
+     * API User
      *
      * @var string
      */
     private $apiUser;
 
     /**
-     * API key.
+     * API key
      *
      * @var string
      */
     private $apiKey;
 
     /**
-     * Balikobot API client.
+     * Balikobot API client
      *
      * @param string $apiUser
      * @param string $apiKey
@@ -47,15 +39,15 @@ class Requester implements RequesterInterface
     }
 
     /**
-     * Call API.
+     * Call API
      *
-     * @param string $version
-     * @param string $request
-     * @param string $shipper
-     * @param array  $data
-     * @param bool   $shouldHaveStatus
+     * @param string             $version
+     * @param string             $request
+     * @param string             $shipper
+     * @param array<mixed,mixed> $data
+     * @param bool               $shouldHaveStatus
      *
-     * @return array
+     * @return array<mixed,mixed>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
@@ -68,6 +60,7 @@ class Requester implements RequesterInterface
     ): array {
         // resolve url
         $path = trim($shipper . '/' . $request, '/');
+        $path = str_replace('//', '/', $path);
         $host = $this->resolveHostName($version);
 
         // call API server and get response
@@ -93,10 +86,10 @@ class Requester implements RequesterInterface
     }
 
     /**
-     * Get API response.
+     * Get API response
      *
-     * @param string $url
-     * @param array  $data
+     * @param string             $url
+     * @param array<mixed,mixed> $data
      *
      * @return \Psr\Http\Message\ResponseInterface
      */
@@ -109,6 +102,8 @@ class Requester implements RequesterInterface
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
         // set data
         if (count($data) > 0) {
@@ -123,17 +118,22 @@ class Requester implements RequesterInterface
         ]);
 
         // execute curl
-        $response   = (string) curl_exec($ch);
-        $statusCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $response   = curl_exec($ch);
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        // check for errors.
+        if ($response === false) {
+            throw new RuntimeException(curl_error($ch), curl_errno($ch));
+        }
 
         // close curl
         curl_close($ch);
 
-        return new Response($statusCode, [], $response);
+        return new Response((int) $statusCode, [], (string) $response);
     }
 
     /**
-     * Get API url for given version.
+     * Get API url for given version
      *
      * @param string $version
      *
@@ -141,15 +141,15 @@ class Requester implements RequesterInterface
      */
     private function resolveHostName(string $version): string
     {
-        return isset(self::API_URL[$version]) ? self::API_URL[$version] : self::API_URL['v1'];
+        return API::URL[$version] ?? API::URL[API::V1];
     }
 
     /**
-     * Validate response.
+     * Validate response
      *
-     * @param int   $statusCode
-     * @param array $response
-     * @param bool  $shouldHaveStatus
+     * @param int                $statusCode
+     * @param array<mixed,mixed> $response
+     * @param bool               $shouldHaveStatus
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
@@ -163,16 +163,16 @@ class Requester implements RequesterInterface
     /**
      * Validate status code
      *
-     * @param int   $statusCode
-     * @param array $response
+     * @param int                $statusCode
+     * @param array<mixed,mixed> $response
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
     private function validateStatus(int $statusCode, array $response = []): void
     {
         // unauthorize
-        if ($statusCode === 401) {
-            throw new UnauthorizedException();
+        if ($statusCode === 401 || $statusCode === 403) {
+            throw new UnauthorizedException(null, $statusCode);
         }
 
         // request error
@@ -182,10 +182,10 @@ class Requester implements RequesterInterface
     }
 
     /**
-     * Validate response status.
+     * Validate response status
      *
-     * @param array $response
-     * @param bool  $shouldHaveStatus
+     * @param array<mixed,mixed> $response
+     * @param bool               $shouldHaveStatus
      *
      * @return void
      *

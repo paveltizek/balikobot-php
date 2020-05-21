@@ -7,7 +7,7 @@ use Inspirum\Balikobot\Definitions\Option;
 trait CustomerData
 {
     /**
-     * Set the item at a given offset.
+     * Set the item at a given offset
      *
      * @param string $key
      * @param mixed  $value
@@ -127,6 +127,16 @@ trait CustomerData
     }
 
     /**
+     * @param string $bankCode
+     *
+     * @return void
+     */
+    public function setBankCode(string $bankCode): void
+    {
+        $this->offsetSet(Option::BANK_CODE, $bankCode);
+    }
+
+    /**
      * @param string $recNamePatronymum
      *
      * @return void
@@ -134,5 +144,15 @@ trait CustomerData
     public function setRecNamePatronymum(string $recNamePatronymum): void
     {
         $this->offsetSet(Option::REC_NAME_PATRONYMUM, $recNamePatronymum);
+    }
+
+    /**
+     * @param string $id
+     *
+     * @return void
+     */
+    public function setRecId(string $id): void
+    {
+        $this->offsetSet(Option::REC_ID, $id);
     }
 }

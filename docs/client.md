@@ -9,11 +9,12 @@ These credentials can be found in the Balikobot administration (section *"Profil
 
 ```php
 use Inspirum\Balikobot\Services\Client;
+use Inspirum\Balikobot\Services\Requester;
 
-$user = getenv('BALIKOBOT_API_USER');
-$key  = getenv('BALIKOBOT_API_KEY');
+$apiUser = getenv('BALIKOBOT_API_USER');
+$apiKey  = getenv('BALIKOBOT_API_KEY');
 
-$client = new Client($user, $key);
+$client = new Client(new Requester($apiUser, $apiKey));
 ```
 
 
@@ -24,6 +25,8 @@ All thrown exceptions implement [**Inspirum\Balikobot\Contracts\ExceptionInterfa
 Thrown exception include error message, API response and any validation messages (even if **return_full_errors** option is not set).
 
 ```php
+use Inspirum\Balikobot\Definitions\Shipper;
+
 // unhandled client call with wrong data
 $client->getOverview(Shipper::CP);
 
@@ -40,6 +43,8 @@ PHP Fatal error: Uncaught Inspirum\Balikobot\Exceptions\UnauthorizedException:
 Usually you will get [**Inspirum\Balikobot\Exceptions\BadRequestException**](../src/Exceptions/BadRequestException.php) 
 
 ```php
+use Inspirum\Balikobot\Definitions\Shipper;
+
 // unhandled client call with wrong data
 $orderedPackages = $client->addPackages(Shipper::CP, $packages);
 
@@ -74,6 +79,7 @@ PHP Fatal error: Uncaught Inspirum\Balikobot\Exceptions\BadRequestException:
 
 ```php
 use Inspirum\Balikobot\Contracts\ExceptionInterface;
+use Inspirum\Balikobot\Definitions\Shipper;
 
 try {
   // handled client call with wrong data
@@ -103,19 +109,19 @@ use Inspirum\Balikobot\Definitions\Shipper;
 
 $orderedPackages = $client->addPackages(Shipper::CP, [
   [
-    Options::SERVICE_TYPE  => ServiceType::CP_NP,
-    Options::ORDER_ID      => '180001',
-    Options::ORDER_NUMBER  => 1,
-    Options::CUSTOMER_NAME => 'Josef Novák',
-    Options::PRICE         => 1500,
+    Option::SERVICE_TYPE  => ServiceType::CP_NP,
+    Option::REAL_ORDER_ID => '180001',
+    Option::ORDER_NUMBER  => 1,
+    Option::REC_NAME      => 'Josef Novák',
+    Option::PRICE         => 1500,
     // ...
   ],
   [
-    Options::SERVICE_TYPE  => ServiceType::CP_NP,
-    Options::ORDER_ID      => '180001',
-    Options::ORDER_NUMBER  => 2,
-    Options::CUSTOMER_NAME => 'Josef Novák',
-    Options::PRICE         => 2000,
+    Option::SERVICE_TYPE  => ServiceType::CP_NP,
+    Option::REAL_ORDER_ID => '180001',
+    Option::ORDER_NUMBER  => 2,
+    Option::REC_NAME      => 'Josef Novák',
+    Option::PRICE         => 2000,
     // ...
   ],
   // ...
@@ -204,6 +210,8 @@ Use the **trackPackageLastStatus** method to get last package status.
 Client normalize response format to match new [**TRACK V2**](#track) response.
 
 ```php
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $status = $client->trackPackageLastStatus(Shipper::CP, 'NP1504102246M');
 
 /*
@@ -224,6 +232,8 @@ To view added packages (with no ordered shipment) for given shipper use **getOve
 It has the same response data format as [**ADD**](#add) request.
 
 ```php
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $orderedPackages = $client->getOverview(Shipper::CP);
 
 /*
@@ -254,6 +264,8 @@ Method **getLabels** return link to labels PDF file for given packages.
 The client normalizes the response by returning only **labels_url** string.
 
 ```php
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $labelsUrl = $client->getLabels(Shipper::CP, [42717, 42719]);
 
 /*
@@ -270,6 +282,8 @@ To get full info about added package use **getPackageInfo()** method.
 Response contains all options from request and all response data from [**ADD**](#add) request for each package.
 
 ```php
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $package = $client->getPackageInfo(Shipper::CP, 42717);
 
 /*
@@ -300,6 +314,8 @@ To order shipment for packages use **orderShipment** method.
 The client normalizes the response by removing the status code (drop **status** attribute).
 
 ```php
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $orderedShipment = $client->orderShipment(Shipper::CP, [42717, 42718]);
 
 /*
@@ -322,6 +338,8 @@ It has shipper code and order ID (**order_id** attribute from [**ORDER**](#order
 The client normalizes the response by removing the status code (drop **status** attribute).
 
 ```php
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $orderedShipment = $client->getOrder(Shipper::CP, 2757);
 
 /*
@@ -345,10 +363,12 @@ var_dump($orderedShipment);
 To order pickup for packages use **orderPickup** method.
 
 ```php
-$orderedPickup = $client->orderPickup(
+use Inspirum\Balikobot\Definitions\Shipper;
+
+$client->orderPickup(
   Shipper::CP,
-  new \DateTime('2018-12-01 14:00'),
-  new \DateTime('2018-12-01 18:00'),
+  new DateTime('2018-12-01 14:00'),
+  new DateTime('2018-12-01 18:00'),
   5.2,
   3
 );
@@ -387,7 +407,9 @@ The client normalizes the response by returning unit ID and value from as associ
 This units are used as **mu_type** option in [**ADD**](#add) request.
 
 ```php
-$units = $client->getManipulationUnits(Shipper::TOP_TRANS);
+use Inspirum\Balikobot\Definitions\Shipper;
+
+$units = $client->getManipulationUnits(Shipper::TOPTRANS);
 
 /*
 var_dump($units);
@@ -412,6 +434,9 @@ Method **getBranches** returns available branches for given shipper and its serv
 The client normalizes the response by returning only **branches** array.
 
 ```php
+use Inspirum\Balikobot\Definitions\ServiceType;
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $branches = $client->getBranches(Shipper::CP, ServiceType::CP_NP);
 
 /*
@@ -441,6 +466,8 @@ Method **getBranches** returns available branches for given shipper and its serv
 The client normalizes the response by returning only **branches** array.
 
 ```php
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $branches = $client->getBranches(Shipper::ZASILKOVNA, null, true);
 
 /*
@@ -480,6 +507,9 @@ Method **getBranchesForLocation** returns available branches for given shipper i
 The client normalizes the response by returning only **branches** array.
 
 ```php
+use Inspirum\Balikobot\Definitions\Country;
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $branches = $client->getBranchesForLocation(Shipper::UPS, Country::CZECH_REPUBLIC, 'Praha');
 
 /*
@@ -515,7 +545,9 @@ Method **getCodCountries** returns available countries where service with cash-o
 The client normalizes the response by returning only countries for service type as associative array `[service_type => cod_countries]`.
 
 ```php
-$countries = $client->getCodCountries(Shipper::PPL)
+use Inspirum\Balikobot\Definitions\Shipper;
+
+$countries = $client->getCodCountries(Shipper::PPL);
 
 /*
 var_dump($countries);
@@ -549,6 +581,8 @@ Method **getCountries** returns available countries for service types from given
 The client normalizes the response by returning only countries for service type as associative array `[service_type => countries]`.
 
 ```php
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $countries = $client->getCountries(Shipper::PBH);
 
 /*
@@ -587,6 +621,9 @@ The client normalizes the response by returning same data format for original **
 Use **postcode** instead of **zip** or **zip_start**, **postcode_end** instead of **zipcode_end**, the other attributes remain the same (with `null` value if missing in API response).
 
 ```php
+use Inspirum\Balikobot\Definitions\ServiceType;
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $postcodes = $client->getPostCodes(Shipper::PPL, ServiceType::PPL_BUSINESS);
 
 /*
@@ -594,15 +631,15 @@ var_dump($postcodes);
 [
   0 => [
     'postcode'     => '10000'
-    'postcode_end' => NULL
-    'city'         => NULL
+    'postcode_end' => null
+    'city'         => null
     'county'       => 'CZ'
     '1B'           => false
   ]
   1 => [
     'postcode'     => '10003'
-    'postcode_end' => NULL
-    'city'         => NULL
+    'postcode_end' => null
+    'city'         => null
     'county'       => 'CZ'
     '1B'           => false
   ]
@@ -612,7 +649,10 @@ var_dump($postcodes);
 ```
 
 ```php
-$postcodes = $client->getPostCodes(Shipper::GEIS, ServiceType::GEIS_PARCEL_PRIVATE));
+use Inspirum\Balikobot\Definitions\ServiceType;
+use Inspirum\Balikobot\Definitions\Shipper;
+
+$postcodes = $client->getPostCodes(Shipper::GEIS, ServiceType::GEIS_PARCEL_PRIVATE);
 
 /*
 var_dump($postcodes);
@@ -620,14 +660,14 @@ var_dump($postcodes);
   0 => [
     'postcode'     => '50755'
     'postcode_end' => '50773'
-    'city'         => NULL
+    'city'         => null
     'county'       => 'CZ'
     '1B'           => false
   ]
   1 => [
     'postcode'     => '50781'
     'postcode_end' => '50792
-    'city'         => NULL
+    'city'         => null
     'county'       => 'CZ'
     '1B'           => false
   ]
@@ -637,6 +677,10 @@ var_dump($postcodes);
 ```
 
 ```php
+use Inspirum\Balikobot\Definitions\Country;
+use Inspirum\Balikobot\Definitions\ServiceType;
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $postcodes = $client->getPostCodes(Shipper::DHL, ServiceType::DHL_WORLDWIDE, Country::ANDORRA);
 
 /*
@@ -662,24 +706,31 @@ This method has no return value if give data is valid, and it throws exception o
 
 
 ```php
+use Inspirum\Balikobot\Definitions\Option;
+use Inspirum\Balikobot\Definitions\ServiceType;
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $client->checkPackages(Shipper::CP, [
   [
-    Options::SERVICE_TYPE  => ServiceType::CP_NP,
-    Options::ORDER_ID      => '180001',
-    Options::CUSTOMER_NAME => 'Josef Novák',
-    Options::PRICE         => 1500,
+    Option::SERVICE_TYPE  => ServiceType::CP_NP,
+    Option::REAL_ORDER_ID => '180001',
+    Option::REC_NAME      => 'Josef Novák',
+    Option::PRICE         => 1500,
     ...
   ],
 ]);
 ```
 
 ```php
+use Inspirum\Balikobot\Definitions\Option;
+use Inspirum\Balikobot\Definitions\Shipper;
+
 $client->checkPackages(Shipper::CP, [
   [
-    // Options::SERVICE_TYPE  => ServiceType::CP_NP,
-    Options::ORDER_ID      => '180001',
-    Options::CUSTOMER_NAME => 'Josef Novák',
-    Options::PRICE         => 1500,
+    // Option::SERVICE_TYPE  => ServiceType::CP_NP,
+    Option::REAL_ORDER_ID => '180001',
+    Option::REC_NAME      => 'Josef Novák',
+    Option::PRICE         => 1500,
     ...
   ]
 ]);
@@ -707,7 +758,9 @@ The client normalizes the response by returning unit ID and value from as associ
 This units are used as **adr_un** option in [**ADD**](#add) request.
 
 ```php
-$units = $client->getAdrUnits(Shipper::TOP_TRANS, ServiceType::TOP_TRANS_STANDARD);
+use Inspirum\Balikobot\Definitions\Shipper;
+
+$units = $client->getAdrUnits(Shipper::TOPTRANS);
 
 /*
 var_dump($units);
@@ -724,6 +777,154 @@ var_dump($units);
 ]
 */
 ```
+
+
+### **ACTIVATEDSERVICES**
+
+Method **getActivatedServices** returns a list of activated services that can be used by the shipper.
+
+The client normalizes the response by removing the status code (drop **status** attribute).
+
+```php
+use Inspirum\Balikobot\Definitions\Shipper;
+
+$services = $client->getServices(Shipper::CP);
+
+/*
+var_dump($services);
+[
+  'active_parcel' => true
+  'active_cargo'  => false
+  'service_types' => [
+    'DR' => 'DR - Balík Do ruky'
+    'RR' => 'RR - Doporučená zásilka'
+    'SR' => 'RR - Doporučená zásilka - standard'
+    'NP' => 'NP - Balík Na poštu'
+    'VL' => 'VL - Cenné psaní'
+    ...
+  ]
+]
+*/
+```
+
+
+### **B2A**
+
+Method **B2A** order shipments from place **B** (typically supplier / previous consignee) to place **A** (shipping point)
+
+The client normalizes the response by removing the status code (drop **status** attribute).
+
+
+```php
+use Inspirum\Balikobot\Definitions\Option;
+use Inspirum\Balikobot\Definitions\ServiceType;
+use Inspirum\Balikobot\Definitions\Shipper;
+
+$orderedPackages = $client->orderB2AShipment(Shipper::PPL, [
+  [
+    Option::SERVICE_TYPE     => ServiceType::PPL_PARCEL_BUSSINESS_CZ,
+    Option::EID              => '1900710001',
+    Option::PICKUP_DATE      => '2019-11-11',
+    Option::PICKUP_TIME_FROM => '13:30',
+    Option::PICKUP_TIME_TO   => '15:30',
+    // ...
+  ],
+  // ...
+]);
+
+/*
+var_dump($orderedPackages);
+[
+  0 => [
+    'package_id'     => 24
+    'status_message' => 'OK, přeprava byla objednána'
+    'status'         => '200'
+  ]
+]
+*/
+```
+
+
+### **POD**
+
+Method **POD** returns PDF links with signed consignment delivery document by the recipient.
+
+The client normalizes the response by returning only **file_url** attribute as plain array.
+
+
+```php
+use Inspirum\Balikobot\Definitions\Shipper;
+
+$fileUrls = $client->getProofOfDeliveries(Shipper::TNT, ['GE502878792CZ', 'GE502878794CZ']);
+
+/*
+var_dump($fileUrls);
+[
+  '0' => 'https://pod.balikobot.cz/tnt/eNorMTY11DUEXDAFrwFs',
+  '1' => 'https://pod.balikobot.cz/tnt/eNorMTY11DUEXDAFrwRE',
+]
+*/
+```
+
+
+## All available methods
+
+```
+addPackages(string $shipper, array $packages, string $version = null, &$labelsUrl = null): array
+
+dropPackage(string $shipper, int $packageId): void
+
+dropPackages(string $shipper, array $packageIds): void
+
+trackPackage(string $shipper, string $carrierId): array
+
+trackPackages(string $shipper, array $carrierIds): array
+
+trackPackageLastStatus(string $shipper, string $carrierId): array
+
+trackPackagesLastStatus(string $shipper, array $carrierIds): array
+
+getOverview(string $shipper): array
+
+getLabels(string $shipper, array $packageIds): string
+
+getPackageInfo(string $shipper, int $packageId): array
+
+orderShipment(string $shipper, array $packageIds): array
+
+getOrder(string $shipper, int $orderId): array
+
+orderPickup(string $shipper, DateTime $dateFrom, DateTime $dateTo, float $weight, int $packageCount, string $message = null): void
+
+getServices(string $shipper, string $country = null, string $version = null): array
+
+getManipulationUnits(string $shipper): array
+
+getBranches( string $shipper, ?string $service, bool $fullBranchRequest = false, string $country = null, string $version = null): array
+
+getBranchesForLocation(string $shipper, string $country, string $city, string $postcode = null, string $street = null, int $maxResults = null, float $radius = null, string $type = null): array
+
+getCodCountries(string $shipper): array
+
+getCountries(string $shipper): array
+
+getPostCodes(string $shipper, string $service, string $country = null): array
+
+checkPackages(string $shipper, array $packages): void
+
+getAdrUnits(string $shipper): array
+
+getActivatedServices(string $shipper): array
+
+orderB2AShipment(string $shipper, array $packages): array
+
+getB2AServices(string $shipper): array
+
+getProofOfDelivery(string $shipper, string $carrierId): string
+
+getProofOfDeliveries(string $shipper, array $carrierIds): array
+```
+
 
 ***
 

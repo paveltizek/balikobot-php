@@ -2,8 +2,6 @@
 
 namespace Inspirum\Balikobot\Model\Values;
 
-use DateTime;
-
 class OrderedShipment
 {
     /**
@@ -27,30 +25,24 @@ class OrderedShipment
     private $fileUrl;
 
     /**
-     * @var \DateTime|null
-     */
-    private $date;
-
-    /**
      * @var string
      */
     private $shipper;
 
     /**
-     * @var int[]
+     * @var array<int>
      */
     private $packageIds;
 
     /**
-     * OrderedShipment constructor.
+     * OrderedShipment constructor
      *
-     * @param string         $orderId
-     * @param string         $shipper
-     * @param array          $packageIds
-     * @param string         $handoverUrl
-     * @param string         $labelsUrl
-     * @param string|null    $fileUrl
-     * @param \DateTime|null $date
+     * @param string      $orderId
+     * @param string      $shipper
+     * @param array<int>  $packageIds
+     * @param string      $handoverUrl
+     * @param string      $labelsUrl
+     * @param string|null $fileUrl
      */
     public function __construct(
         string $orderId,
@@ -58,7 +50,6 @@ class OrderedShipment
         array $packageIds,
         string $handoverUrl,
         string $labelsUrl,
-        DateTime $date = null,
         string $fileUrl = null
     ) {
         $this->orderId     = $orderId;
@@ -66,7 +57,6 @@ class OrderedShipment
         $this->packageIds  = $packageIds;
         $this->handoverUrl = $handoverUrl;
         $this->labelsUrl   = $labelsUrl;
-        $this->date        = $date;
         $this->fileUrl     = $fileUrl;
     }
 
@@ -103,14 +93,6 @@ class OrderedShipment
     }
 
     /**
-     * @return \DateTime|null
-     */
-    public function getDate(): ?DateTime
-    {
-        return $this->date;
-    }
-
-    /**
      * @return string
      */
     public function getShipper(): string
@@ -119,9 +101,9 @@ class OrderedShipment
     }
 
     /**
-     * Get package IDs.
+     * Get package IDs
      *
-     * @return int[]
+     * @return array<int>
      */
     public function getPackageIds(): array
     {
@@ -129,18 +111,16 @@ class OrderedShipment
     }
 
     /**
-     * @param string         $shipper
-     * @param array          $packageIds
-     * @param array          $data
-     * @param \DateTime|null $date
+     * @param string              $shipper
+     * @param array<int>          $packageIds
+     * @param array<string,mixed> $data
      *
      * @return \Inspirum\Balikobot\Model\Values\OrderedShipment
      */
     public static function newInstanceFromData(
         string $shipper,
         array $packageIds,
-        array $data,
-        DateTime $date = null
+        array $data
     ): self {
         return new self(
             $data['order_id'],
@@ -148,7 +128,6 @@ class OrderedShipment
             $packageIds,
             $data['handover_url'],
             $data['labels_url'],
-            $date,
             $data['file_url'] ?? null
         );
     }

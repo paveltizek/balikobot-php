@@ -34,8 +34,12 @@ use Inspirum\Balikobot\Definitions\Shipper;
 use Inspirum\Balikobot\Model\Aggregates\PackageCollection;
 use Inspirum\Balikobot\Model\Values\Package;
 use Inspirum\Balikobot\Services\Balikobot;
+use Inspirum\Balikobot\Services\Requester;
 
-$balikobot = new Balikobot($user, $key);
+$apiUser = getenv('BALIKOBOT_API_USER');
+$apiKey  = getenv('BALIKOBOT_API_KEY');
+
+$balikobot = new Balikobot(new Requester($apiUser, $apiKey));
 
 $packages = new PackageCollection(Shipper::CP);
 
@@ -56,13 +60,14 @@ $orderedPackages = $balikobot->addPackages($packages);
 /*
 var_dump($orderedPackages);
 Inspirum\Balikobot\Model\Aggregates\OrderedPackageCollection {
-  private $shipper  => 'cp'
-  private $packages => [
+  private $shipper   => 'cp'
+  private $labelsUrl => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwVcMBAXAC9.'
+  private $packages  => [
     0 => Inspirum\Balikobot\Model\Values\OrderedPackage {
       private $shipper   => 'cp'
       private $packageId => '42718'
       private $carrierId => 'NP1504102232M'
-      private $trackUrl  => NULL
+      private $trackUrl  => null
       private $labelUrl  => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwVcMBAXAn4.'
       ...
     }
@@ -107,7 +112,6 @@ Inspirum\Balikobot\Model\Values\OrderedShipment {
   private $handoverUrl => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NTW1MAVcMBAaAn4.'
   private $labelsUrl   => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwVcMBAXAn4.'
   private $fileUrl     => 'https://csv.balikobot.cz/cp/eNorMTIwt9A1sjAyB1wwDZECRr..'
-  private $date        => NULL
   private $shipper     => 'cp'
   private $packageIds  => [
     '43619'
@@ -159,13 +163,23 @@ Several methods can be used to obtain branches for supported shippers.
 These methods return a large amount of data, therefore, these methods use [Generator](http://php.net/manual/en/class.generator.php) via [`yield`](http://php.net/manual/en/language.generators.syntax.php) keyword for returned data.
 It saves a lot of memory and allows you to iterate all branches at one time in one cycle.
 
+All methods allow filter branches by country.
+
 ```php
-$shippers = $balikobot->getBranches():
-$shippers = $balikobot->getBranchesForShipper(Shipper::CP);
-$shippers = $balikobot->getBranchesForShipperService(Shipper::CP, ServiceType::CP_NP);
+use Inspirum\Balikobot\Definitions\Country;
+use Inspirum\Balikobot\Definitions\ServiceType;
+use Inspirum\Balikobot\Definitions\Shipper;
+
+$branches = $balikobot->getBranches();
+$branches = $balikobot->getBranchesForShipper(Shipper::CP);
+$branches = $balikobot->getBranchesForShipperService(Shipper::CP, ServiceType::CP_NP);
+
+$branches = $balikobot->getBranchesForCountries([Country::CZECH_REPUBLIC, Country::SLOVAKIA]);
+$branches = $balikobot->getBranchesForShipperForCountries(Shipper::ZASILKOVNA, [Country::CZECH_REPUBLIC, Country::SLOVAKIA]);
+$branches = $balikobot->getBranchesForShipperServiceForCountries(Shipper::ZASILKOVNA, null, [Country::CZECH_REPUBLIC, Country::SLOVAKIA]);
 
 /*
-var_dump($shippers);
+var_dump($branches);
 Generator {}
 */
 ```
@@ -174,31 +188,104 @@ Branch contains all possible attributes from [**FULLBRANCH**](./client.md#fullbr
 Different shippers use different attribute as **branch_id** in [**ADD**](./client.md#add) request, therefore [**Branch**](../src/Model/Values/Branch.php) class already set proper **branch_id** for given shipper type.
 
 ```php
-$shippers = $balikobot->getBranchesForShipper(Shipper::CP):
-í
+use Inspirum\Balikobot\Definitions\Shipper;
+
+$shippers = $balikobot->getBranchesForShipper(Shipper::CP);
+
 foreach($shippers as $shipper) {
-  
   /*
   var_dump($shipper);
   Inspirum\Balikobot\Model\Values\Branch {
     private $shipper  => 'cp'
     private $service  => 'NB'
     private $branchId => '10003'
-    private $id       => NULL
+    private $id       => null
     private $type     => 'branch'
     private $name     => 'Depo Praha 701'
     private $city     => ''
     private $street   => 'Sazečská 598/7, Malešice, 10003, Praha'
     private $zip      => '10003'
-    private $cityPart => NULL
-    private $district => NULL
-    private $region   => NULL
+    private $cityPart => null
+    private $district => null
+    private $region   => null
     private $country  => 'CZ'
     ...
   }
   */
 }
 ```
+
+
+## All available methods
+
+```
+getShippers(): array
+
+addPackages(PackageCollection $packages): OrderedPackageCollection
+
+dropPackages(OrderedPackageCollection $packages): void
+
+dropPackage(OrderedPackage $package): void
+
+orderShipment(OrderedPackageCollection $packages): OrderedShipment
+
+trackPackage(OrderedPackage $package): array
+
+trackPackages(OrderedPackageCollection $packages): array
+
+trackPackageLastStatus(OrderedPackage $package): PackageStatus
+
+trackPackagesLastStatus(OrderedPackageCollection $packages): array
+
+getOverview(string $shipper): OrderedPackageCollection
+
+getLabels(OrderedPackageCollection $packages): string
+
+getPackageInfo(OrderedPackage $package): Package
+
+getOrder(string $shipper, int $orderId): OrderedShipment
+
+getServices(string $shipper, string $country = null): array
+
+getManipulationUnits(string $shipper): array
+
+getBranches(): iterable
+
+getBranchesForCountries(array $countries): iterable
+
+getBranchesForShipper(string $shipper): iterable
+
+getBranchesForShipperForCountries(string $shipper, array $countries): iterable
+
+getBranchesForShipperService(string $shipper, ?string $service, string $country = null): iterable
+
+getBranchesForShipperServiceForCountry(string $shipper, ?string $service, ?string $country): iterable
+
+getBranchesForShipperServiceForCountries(string $shipper, ?string $service, array $countries): iterable
+
+getBranchesForLocation(string $shipper, string $country, string $city, string $postcode = null, string $street = null, int $maxResults = null, float $radius = null, string $type = null): iterable
+
+getCodCountries(string $shipper): array
+
+getCountries(string $shipper): array
+
+getPostCodes(string $shipper, string $service, string $country = null): iterable
+
+checkPackages(PackageCollection $packages): void
+
+getAdrUnits(string $shipper): array
+
+getActivatedServices(string $shipper): array
+
+orderB2AShipment(PackageCollection $packages): OrderedPackageCollection
+
+getB2AServices(string $shipper): array
+
+getProofOfDelivery(OrderedPackage $package): string
+
+getProofOfDeliveries(OrderedPackageCollection $packages): array
+```
+
 
 ***
 

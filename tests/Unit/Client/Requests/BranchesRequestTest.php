@@ -18,7 +18,7 @@ class BranchesRequestTest extends AbstractClientTestCase
 
         $client = new Client($requester);
 
-        $client->getBranches('cp');
+        $client->getBranches('cp', 'NP');
     }
 
     public function testRequestShouldHaveStatus()
@@ -29,7 +29,7 @@ class BranchesRequestTest extends AbstractClientTestCase
 
         $client = new Client($requester);
 
-        $client->getBranches('cp');
+        $client->getBranches('cp', 'NP');
     }
 
     public function testThrowsExceptionOnBadStatusCode()
@@ -42,7 +42,7 @@ class BranchesRequestTest extends AbstractClientTestCase
 
         $client = new Client($requester);
 
-        $client->getBranches('cp');
+        $client->getBranches('cp', 'NP');
     }
 
     public function testMakeRequest()
@@ -54,11 +54,11 @@ class BranchesRequestTest extends AbstractClientTestCase
 
         $client = new Client($requester);
 
-        $client->getBranches('cp');
+        $client->getBranches('cp', 'NP');
 
         $requester->shouldHaveReceived(
             'request',
-            ['https://api.balikobot.cz/cp/branches', []]
+            ['https://api.balikobot.cz/cp/branches/NP', []]
         );
 
         $this->assertTrue(true);
@@ -102,6 +102,44 @@ class BranchesRequestTest extends AbstractClientTestCase
         $this->assertTrue(true);
     }
 
+    public function testMakeRequestWithCountry()
+    {
+        $requester = $this->newRequesterWithMockedRequestMethod(200, [
+            'status'   => 200,
+            'branches' => [],
+        ]);
+
+        $client = new Client($requester);
+
+        $client->getBranches('cp', 'NP', false, 'DE');
+
+        $requester->shouldHaveReceived(
+            'request',
+            ['https://api.balikobot.cz/cp/branches/NP/DE', []]
+        );
+
+        $this->assertTrue(true);
+    }
+
+    public function testMakeRequestWithCountryWithoutService()
+    {
+        $requester = $this->newRequesterWithMockedRequestMethod(200, [
+            'status'   => 200,
+            'branches' => [],
+        ]);
+
+        $client = new Client($requester);
+
+        $client->getBranches('zasilkovna', null, false, 'DE');
+
+        $requester->shouldHaveReceived(
+            'request',
+            ['https://api.balikobot.cz/zasilkovna/branches/DE', []]
+        );
+
+        $this->assertTrue(true);
+    }
+
     public function testEmptyArrayIsReturnedIfUnitsMissing()
     {
         $requester = $this->newRequesterWithMockedRequestMethod(200, [
@@ -111,7 +149,7 @@ class BranchesRequestTest extends AbstractClientTestCase
 
         $client = new Client($requester);
 
-        $branches = $client->getBranches('cp');
+        $branches = $client->getBranches('cp', 'NP');
 
         $this->assertEquals([], $branches);
     }
@@ -123,28 +161,28 @@ class BranchesRequestTest extends AbstractClientTestCase
             'branches' => [
                 [
                     'code' => 1,
-                    'name' => "AAA",
+                    'name' => 'AAA',
                 ],
                 [
                     'code' => 876,
-                    'name' => "BBB",
+                    'name' => 'BBB',
                 ],
             ],
         ]);
 
         $client = new Client($requester);
 
-        $branches = $client->getBranches('cp');
+        $branches = $client->getBranches('cp', 'NP');
 
         $this->assertEquals(
             [
                 [
                     'code' => 1,
-                    'name' => "AAA",
+                    'name' => 'AAA',
                 ],
                 [
                     'code' => 876,
-                    'name' => "BBB",
+                    'name' => 'BBB',
                 ],
             ],
             $branches

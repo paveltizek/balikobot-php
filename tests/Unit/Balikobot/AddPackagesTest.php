@@ -18,14 +18,20 @@ class AddPackagesTest extends AbstractBalikobotTestCase
                 'label_url'  => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoA.',
                 'status'     => '200',
             ],
+            1        => [
+                'carrier_id' => 'NP1504102247M',
+                'package_id' => 42720,
+                'label_url'  => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoB.',
+                'status'     => '200',
+            ],
         ]);
 
         $service = new Balikobot($requester);
 
-        $packages = new PackageCollection('ppl', '0001');
+        $packages = new PackageCollection('ppl');
 
-        $packages->add(new Package(['vs' => '0001', 'rec_name' => 'Name']));
-        $packages->add(new Package(['vs' => '0002', 'price' => 2000]));
+        $packages->add(new Package(['vs' => '0001', 'eid' => '0001', 'rec_name' => 'Name']));
+        $packages->add(new Package(['vs' => '0002', 'eid' => '0001', 'price' => 2000]));
 
         $service->addPackages($packages);
 
@@ -55,7 +61,7 @@ class AddPackagesTest extends AbstractBalikobotTestCase
     {
         $requester = $this->newRequesterWithMockedRequestMethod(200, [
             'status'     => 200,
-            'labels_url' => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoA.',
+            'labels_url' => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoC.',
             0            => [
                 'carrier_id' => 'NP1504102246M',
                 'package_id' => 42719,
@@ -72,7 +78,10 @@ class AddPackagesTest extends AbstractBalikobotTestCase
 
         $service = new Balikobot($requester);
 
-        $packages = new PackageCollection('cp', '0001');
+        $packages = new PackageCollection('cp');
+
+        $packages->add(new Package(['eid' => '0001']));
+        $packages->add(new Package(['eid' => '0002']));
 
         $orderedPackages = $service->addPackages($packages);
 
@@ -80,5 +89,233 @@ class AddPackagesTest extends AbstractBalikobotTestCase
         $this->assertEquals([42719, 42720], $orderedPackages->getPackageIds());
         $this->assertEquals('NP1504102247M', $orderedPackages[1]->getCarrierId());
         $this->assertEquals('0001', $orderedPackages[0]->getBatchId());
+        $this->assertEquals('0002', $orderedPackages[1]->getBatchId());
+        $this->assertEquals(
+            'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoC.',
+            $orderedPackages->getLabelsUrl()
+        );
+    }
+
+    public function testResponseDataWithoudEID()
+    {
+        $requester = $this->newRequesterWithMockedRequestMethod(200, [
+            'status'     => 200,
+            'labels_url' => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoC.',
+            0            => [
+                'carrier_id' => 'NP1504102246M',
+                'package_id' => 42719,
+                'label_url'  => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoA.',
+                'status'     => '200',
+            ],
+            1            => [
+                'carrier_id' => 'NP1504102247M',
+                'package_id' => 42720,
+                'label_url'  => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoB.',
+                'status'     => '200',
+            ],
+        ]);
+
+        $service = new Balikobot($requester);
+
+        $packages = new PackageCollection('cp');
+
+        $packages->add(new Package(['test' => '1']));
+        $packages->add(new Package(['test' => '2']));
+
+        $orderedPackages = $service->addPackages($packages);
+
+        $this->assertNotEmpty($orderedPackages[0]->getBatchId());
+        $this->assertNotEmpty($orderedPackages[1]->getBatchId());
+    }
+
+    public function testMakeV1RequestForUPSShipper()
+    {
+        $requester = $this->newRequesterWithMockedRequestMethod(200, [
+            'status' => 200,
+            0        => [
+                'carrier_id' => 'NP1504102246M',
+                'package_id' => 42719,
+                'label_url'  => 'https://pdf.balikobot.cz/ups/eNorMTIwt9A1NbYwMwdcMBAZAoA.',
+                'status'     => '200',
+            ],
+        ]);
+
+        $service = new Balikobot($requester);
+
+        $packages = new PackageCollection('ups');
+
+        $packages->add(new Package(['vs' => '0001', 'eid' => '0001', 'pieces_count' => 2, 'rec_name' => 'Name']));
+
+        $service->addPackages($packages);
+
+        $requester->shouldHaveReceived(
+            'request',
+            [
+                'https://api.balikobot.cz/ups/add',
+                [
+                    0 => [
+                        'eid'          => '0001',
+                        'vs'           => '0001',
+                        'pieces_count' => 2,
+                        'rec_name'     => 'Name',
+                    ],
+                ],
+            ]
+        );
+
+        $this->assertTrue(true);
+    }
+
+    public function testMakeV2RequestForUPSShipper()
+    {
+        $requester = $this->newRequesterWithMockedRequestMethod(200, [
+            'status' => 200,
+            0        => [
+                'carrier_id' => 'NP1504102246M',
+                'package_id' => 42719,
+                'label_url'  => 'https://pdf.balikobot.cz/ups/eNorMTIwt9A1NbYwMwdcMBAZAoA.',
+                'status'     => '200',
+            ],
+            1        => [
+                'carrier_id' => 'NP1504102247M',
+                'package_id' => 42720,
+                'label_url'  => 'https://pdf.balikobot.cz/ups/eNorMTIwt9A1NbYwMwdcMBAZAoB.',
+                'status'     => '200',
+            ],
+        ]);
+
+        $service = new Balikobot($requester);
+
+        $packages = new PackageCollection('ups');
+
+        $packages->add(new Package(['vs' => '0001', 'eid' => '0001', 'order_number' => 1, 'rec_name' => 'Name']));
+        $packages->add(new Package(['vs' => '0001', 'eid' => '0001', 'order_number' => 2, 'rec_name' => 'Name2']));
+
+        $service->addPackages($packages);
+
+        $requester->shouldHaveReceived(
+            'request',
+            [
+                'https://api.balikobot.cz/v2/ups/add',
+                [
+                    0 => [
+                        'eid'          => '0001',
+                        'vs'           => '0001',
+                        'order_number' => 1,
+                        'rec_name'     => 'Name',
+                    ],
+                    1 => [
+                        'eid'          => '0001',
+                        'vs'           => '0001',
+                        'order_number' => 2,
+                        'rec_name'     => 'Name2',
+                    ],
+                ],
+            ]
+        );
+
+        $this->assertTrue(true);
+    }
+
+    public function testMakeV2RequestForDHLShipper()
+    {
+        $requester = $this->newRequesterWithMockedRequestMethod(200, [
+            'status' => 200,
+            0        => [
+                'carrier_id' => 'NP1504102246M',
+                'package_id' => 42719,
+                'label_url'  => 'https://pdf.balikobot.cz/dhl/eNorMTIwt9A1NbYwMwdcMBAZAoA.',
+                'status'     => '200',
+            ],
+            1        => [
+                'carrier_id' => 'NP1504102247M',
+                'package_id' => 42720,
+                'label_url'  => 'https://pdf.balikobot.cz/dhl/eNorMTIwt9A1NbYwMwdcMBAZAoB.',
+                'status'     => '200',
+            ],
+        ]);
+
+        $service = new Balikobot($requester);
+
+        $packages = new PackageCollection('dhl');
+
+        $packages->add(new Package(['vs' => '0001', 'eid' => '0001', 'order_number' => 1, 'rec_name' => 'Name']));
+        $packages->add(new Package(['vs' => '0001', 'eid' => '0001', 'order_number' => 2, 'rec_name' => 'Name2']));
+
+        $service->addPackages($packages);
+
+        $requester->shouldHaveReceived(
+            'request',
+            [
+                'https://api.balikobot.cz/v2/dhl/add',
+                [
+                    0 => [
+                        'eid'          => '0001',
+                        'vs'           => '0001',
+                        'order_number' => 1,
+                        'rec_name'     => 'Name',
+                    ],
+                    1 => [
+                        'eid'          => '0001',
+                        'vs'           => '0001',
+                        'order_number' => 2,
+                        'rec_name'     => 'Name2',
+                    ],
+                ],
+            ]
+        );
+
+        $this->assertTrue(true);
+    }
+
+    public function testMakeV2RequestForTNTShipper()
+    {
+        $requester = $this->newRequesterWithMockedRequestMethod(200, [
+            'status' => 200,
+            0        => [
+                'carrier_id' => 'NP1504102246M',
+                'package_id' => 42719,
+                'label_url'  => 'https://pdf.balikobot.cz/tnt/eNorMTIwt9A1NbYwMwdcMBAZAoA.',
+                'status'     => '200',
+            ],
+            1        => [
+                'carrier_id' => 'NP1504102247M',
+                'package_id' => 42720,
+                'label_url'  => 'https://pdf.balikobot.cz/dhl/eNorMTIwt9A1NbYwMwdcMBAZAoB.',
+                'status'     => '200',
+            ],
+        ]);
+
+        $service = new Balikobot($requester);
+
+        $packages = new PackageCollection('tnt');
+
+        $packages->add(new Package(['vs' => '0001', 'eid' => '0001', 'order_number' => 1, 'rec_name' => 'Name']));
+        $packages->add(new Package(['vs' => '0001', 'eid' => '0001', 'order_number' => 2, 'rec_name' => 'Name2']));
+
+        $service->addPackages($packages);
+
+        $requester->shouldHaveReceived(
+            'request',
+            [
+                'https://api.balikobot.cz/v2/tnt/add',
+                [
+                    0 => [
+                        'eid'          => '0001',
+                        'vs'           => '0001',
+                        'order_number' => 1,
+                        'rec_name'     => 'Name',
+                    ],
+                    1 => [
+                        'eid'          => '0001',
+                        'vs'           => '0001',
+                        'order_number' => 2,
+                        'rec_name'     => 'Name2',
+                    ],
+                ],
+            ]
+        );
+
+        $this->assertTrue(true);
     }
 }

@@ -32,8 +32,8 @@ class GetServicesTest extends AbstractBalikobotTestCase
         $requester = $this->newRequesterWithMockedRequestMethod(200, [
             'status'        => 200,
             'service_types' => [
-                'NP',
-                'RR',
+                'NP' => 'NP - Balík Na poštu',
+                'RR' => 'RR - Doporučená zásilka Ekonomická',
             ],
         ]);
 
@@ -41,6 +41,12 @@ class GetServicesTest extends AbstractBalikobotTestCase
 
         $services = $service->getServices('ppl');
 
-        $this->assertEquals(['NP', 'RR'], $services);
+        $this->assertEquals(
+            [
+                'NP' => 'NP - Balík Na poštu',
+                'RR' => 'RR - Doporučená zásilka Ekonomická',
+            ],
+            $services
+        );
     }
 }

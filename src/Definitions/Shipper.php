@@ -4,7 +4,7 @@ namespace Inspirum\Balikobot\Definitions;
 
 use InvalidArgumentException;
 
-class Shipper
+final class Shipper
 {
     /**
      * Česká pošta s.p.
@@ -26,13 +26,6 @@ class Shipper
      * @var string
      */
     public const DHL = 'dhl';
-
-    /**
-     * DHL Parcel Slovensko
-     *
-     * @var string
-     */
-    public const DHLSK = 'dhlsk';
 
     /**
      * Geis CZ s.r.o.
@@ -88,7 +81,7 @@ class Shipper
      *
      * @var string
      */
-    public const TOP_TRANS = 'toptrans';
+    public const TOPTRANS = 'toptrans';
 
     /**
      * Uloženka s.r.o.
@@ -119,16 +112,29 @@ class Shipper
     public const TNT = 'tnt';
 
     /**
+     * Gebrüder Weiss
+     *
+     * @var string
+     */
+    public const GW = 'gw';
+
+    /**
+     * Gebrüder Weiss Česká republika
+     *
+     * @var string
+     */
+    public const GWCZ = 'gwcz';
+
+    /**
      * All supported shipper services.
      *
-     * @return array
+     * @return array<string>
      */
     public static function all(): array
     {
         return [
             self::CP,
             self::DHL,
-            self::DHLSK,
             self::DPD,
             self::GEIS,
             self::GLS,
@@ -137,11 +143,13 @@ class Shipper
             self::PPL,
             self::SP,
             self::SPS,
-            self::TOP_TRANS,
+            self::TOPTRANS,
             self::ULOZENKA,
             self::UPS,
             self::ZASILKOVNA,
             self::TNT,
+            self::GW,
+            self::GWCZ,
         ];
     }
 
@@ -185,5 +193,83 @@ class Shipper
         }
 
         return false;
+    }
+
+    /**
+     * Resolve ADD request version
+     *
+     * @param string                     $shipperCode
+     * @param array<array<string,mixed>> $packagesData
+     *
+     * @return string
+     */
+    public static function resolveAddRequestVersion(string $shipperCode, array $packagesData): string
+    {
+        $supportedShippers = [Shipper::ZASILKOVNA];
+        if (in_array($shipperCode, $supportedShippers) && isset($packagesData[0][Option::SERVICE_TYPE])) {
+            return API::V2;
+        }
+
+        $supportedShippers = [Shipper::UPS, Shipper::DHL, Shipper::TNT, Shipper::TOPTRANS];
+        if (in_array($shipperCode, $supportedShippers) && isset($packagesData[0][Option::ORDER_NUMBER])) {
+            return API::V2;
+        }
+
+        return API::V1;
+    }
+
+    /**
+     * Resolve SERVICES request version
+     *
+     * @param string $shipperCode
+     *
+     * @return string
+     */
+    public static function resolveServicesRequestVersion(string $shipperCode): string
+    {
+        $supportedShippers = [Shipper::ZASILKOVNA];
+
+        if (in_array($shipperCode, $supportedShippers)) {
+            return API::V2;
+        }
+
+        return API::V1;
+    }
+
+    /**
+     * Resolve BRANCHES request version
+     *
+     * @param string      $shipperCode
+     * @param string|null $serviceCode
+     *
+     * @return string
+     */
+    public static function resolveBranchesRequestVersion(string $shipperCode, ?string $serviceCode): string
+    {
+        $supportedShippers = [Shipper::ZASILKOVNA];
+
+        if (in_array($shipperCode, $supportedShippers) && $serviceCode !== null) {
+            return API::V2;
+        }
+
+        return API::V1;
+    }
+
+    /**
+     * Determine if shipper has support to filter branches by country code.
+     *
+     * @param string $shipperCode
+     *
+     * @return bool
+     */
+    public static function hasBranchCountryFilterSupport(string $shipperCode): bool
+    {
+        $supportedShippers = [
+            Shipper::DPD,
+            Shipper::GLS,
+            Shipper::PPL,
+        ];
+
+        return in_array($shipperCode, $supportedShippers);
     }
 }

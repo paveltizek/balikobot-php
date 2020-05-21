@@ -5,29 +5,32 @@ namespace Inspirum\Balikobot\Model\Values;
 use ArrayAccess;
 use Inspirum\Balikobot\Model\Values\Package\CommonData;
 
+/**
+ * @implements \ArrayAccess<string,mixed>
+ */
 abstract class AbstractPackage implements ArrayAccess
 {
+    use CommonData;
+
     /**
-     * Package data.
+     * Package data
      *
-     * @var array
+     * @var array<string,mixed>
      */
     private $data;
 
     /**
-     * Package constructor.
+     * Package constructor
      *
-     * @param array $data
+     * @param array<string,mixed> $data
      */
     public function __construct(array $data = [])
     {
         $this->data = $data;
     }
 
-    use CommonData;
-
     /**
-     * Determine if an item exists at an offset.
+     * Determine if an item exists at an offset
      *
      * @param string $key
      *
@@ -39,7 +42,7 @@ abstract class AbstractPackage implements ArrayAccess
     }
 
     /**
-     * Get an item at a given offset.
+     * Get an item at a given offset
      *
      * @param string $key
      *
@@ -51,7 +54,7 @@ abstract class AbstractPackage implements ArrayAccess
     }
 
     /**
-     * Set the item at a given offset.
+     * Set the item at a given offset
      *
      * @param string $key
      * @param mixed  $value
@@ -64,7 +67,7 @@ abstract class AbstractPackage implements ArrayAccess
     }
 
     /**
-     * Unset the item at a given offset.
+     * Unset the item at a given offset
      *
      * @param string $key
      *
@@ -76,9 +79,9 @@ abstract class AbstractPackage implements ArrayAccess
     }
 
     /**
-     * Get the collection of packages as a plain array.
+     * Get the collection of packages as a plain array
      *
-     * @return array
+     * @return array<string,mixed>
      */
     public function toArray(): array
     {

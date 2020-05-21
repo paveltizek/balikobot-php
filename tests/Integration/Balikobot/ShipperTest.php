@@ -15,27 +15,25 @@ class ShipperTest extends AbstractBalikobotTestCase
 
         $supportedShippers = [
             'cp',
+            'dhl',
             'dpd',
-            'ppl',
-            'zasilkovna',
             'geis',
-            'ulozenka',
-            'intime',
             'gls',
-            'toptrans',
+            'intime',
             'pbh',
+            'ppl',
             'sp',
             'sps',
-            'ups',
             'tnt',
-            'dhl',
-            'dhlsk',
+            'toptrans',
+            'ulozenka',
+            'ups',
+            'zasilkovna',
+            'gw',
+            'gwcz',
         ];
 
-        sort($shippers);
-        sort($supportedShippers);
-
-        $this->assertEquals($supportedShippers, $shippers);
+        $this->assertEqualsCanonicalizing($supportedShippers, $shippers);
     }
 
     public function testPackageSupportAllShippersServices()
@@ -45,27 +43,16 @@ class ShipperTest extends AbstractBalikobotTestCase
         $shippers = Shipper::all();
         $services = [];
 
-        // TODO: remove after API fix
-        unset($shippers[array_search(Shipper::UPS, $shippers)]);
-
         foreach ($shippers as $shipper) {
             $services[$shipper] = array_keys($service->getServices($shipper));
         }
 
         $supportedServices = ServiceType::all();
 
-        // TODO: remove after API fix
-        unset($supportedServices[Shipper::UPS]);
-
-        // make `[null]` array to empty array
         $supportedServices = array_map(function ($data) {
-            if (empty(array_filter($data))) {
-                return [];
-            }
-
-            return $data;
+            return array_filter($data);
         }, $supportedServices);
 
-        $this->assertEquals($services, $supportedServices);
+        $this->assertEquals($supportedServices, $services);
     }
 }

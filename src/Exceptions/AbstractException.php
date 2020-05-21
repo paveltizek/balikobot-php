@@ -10,30 +10,30 @@ use Throwable;
 abstract class AbstractException extends RuntimeException implements ExceptionInterface
 {
     /**
-     * Response data.
+     * Response data
      *
-     * @var array
+     * @var array<mixed>
      */
     protected $response;
 
     /**
-     * Response HTTP status code.
+     * Response HTTP status code
      *
      * @var int
      */
     protected $statusCode;
 
     /**
-     * API response errors.
+     * API response errors
      *
-     * @var array
+     * @var array<array<string,string>>
      */
     protected $errors = [];
 
     /**
-     * AbstractException constructor.
+     * AbstractException constructor
      *
-     * @param array           $response
+     * @param array<mixed>    $response
      * @param int             $statusCode
      * @param \Throwable|null $previous
      * @param string|null     $message
@@ -60,7 +60,7 @@ abstract class AbstractException extends RuntimeException implements ExceptionIn
     }
 
     /**
-     * Get response HTTP status code.
+     * Get response HTTP status code
      *
      * @return int
      */
@@ -70,9 +70,9 @@ abstract class AbstractException extends RuntimeException implements ExceptionIn
     }
 
     /**
-     * Get response as array.
+     * Get response as array
      *
-     * @return array
+     * @return array<mixed>
      */
     public function getResponse(): array
     {
@@ -80,7 +80,7 @@ abstract class AbstractException extends RuntimeException implements ExceptionIn
     }
 
     /**
-     * Get response as string.
+     * Get response as string
      *
      * @return string
      */
@@ -90,9 +90,9 @@ abstract class AbstractException extends RuntimeException implements ExceptionIn
     }
 
     /**
-     * Get response errors.
+     * Get response errors
      *
-     * @return array
+     * @return array<array<string,string>>
      */
     public function getErrors(): array
     {

@@ -2,10 +2,10 @@
 
 namespace Inspirum\Balikobot\Definitions;
 
-class Response
+final class Response
 {
     /**
-     * @var array
+     * @var array<int,string>
      */
     public static $statusCodesErrors = [
         200 => 'OK, operace proběhla v pořádku.',
@@ -24,7 +24,7 @@ class Response
     ];
 
     /**
-     * @var array
+     * @var array<int,string>
      */
     public static $packageDataErrors = [
         406 => 'Nedorazila žádná data ke zpracování.',
@@ -34,7 +34,7 @@ class Response
     ];
 
     /**
-     * @var array
+     * @var array<int,array<string,string>>
      */
     public static $packageDataKeyErrors = [
         406 => [

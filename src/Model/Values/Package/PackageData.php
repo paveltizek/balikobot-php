@@ -7,7 +7,7 @@ use Inspirum\Balikobot\Definitions\Option;
 trait PackageData
 {
     /**
-     * Set the item at a given offset.
+     * Set the item at a given offset
      *
      * @param string $key
      * @param mixed  $value
@@ -84,5 +84,15 @@ trait PackageData
     public function setOverDimension(bool $overDimension = true): void
     {
         $this->offsetSet(Option::OVER_DIMENSION, (int) $overDimension);
+    }
+
+    /**
+     * @param string $currency
+     *
+     * @return void
+     */
+    public function setInsCurrency(string $currency): void
+    {
+        $this->offsetSet(Option::INS_CURRENCY, $currency);
     }
 }

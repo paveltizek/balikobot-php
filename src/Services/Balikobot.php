@@ -2,7 +2,6 @@
 
 namespace Inspirum\Balikobot\Services;
 
-use DateTime;
 use Inspirum\Balikobot\Contracts\RequesterInterface;
 use Inspirum\Balikobot\Definitions\Option;
 use Inspirum\Balikobot\Definitions\Shipper;
@@ -25,7 +24,7 @@ class Balikobot
     private $client;
 
     /**
-     * Balikobot constructor.
+     * Balikobot constructor
      *
      * @param \Inspirum\Balikobot\Contracts\RequesterInterface $requester
      */
@@ -35,9 +34,9 @@ class Balikobot
     }
 
     /**
-     * All supported shipper services.
+     * All supported shipper services
      *
-     * @return string[]
+     * @return array<string>
      */
     public function getShippers(): array
     {
@@ -45,7 +44,7 @@ class Balikobot
     }
 
     /**
-     * Add packages.
+     * Add packages
      *
      * @param \Inspirum\Balikobot\Model\Aggregates\PackageCollection $packages
      *
@@ -56,25 +55,35 @@ class Balikobot
      */
     public function addPackages(PackageCollection $packages, string &$labelsUrl): OrderedPackageCollection
     {
-        $response = $this->client->addPackages($packages->getShipper(), $packages->toArray());
+        $usedRequestVersion = Shipper::resolveAddRequestVersion($packages->getShipper(), $packages->toArray());
+        $labelsUrl          = null;
+
+        $response = $this->client->addPackages(
+            $packages->getShipper(),
+            $packages->toArray(),
+            $usedRequestVersion,
+            $labelsUrl
+        );
 
         $labelsUrl = array_pop($response);
         // create return value object
         $orderedPackages = new OrderedPackageCollection();
+        $orderedPackages->setLabelsUrl($labelsUrl);
 
         foreach ($response as $i => $package) {
-            $orderedPackages->add(OrderedPackage::newInstanceFromData(
+            $orderedPackage = OrderedPackage::newInstanceFromData(
                 $packages->getShipper(),
-                $packages->getEID(),
+                $packages->offsetGet($i)->getEID(),
                 $package
-            ));
+            );
+            $orderedPackages->add($orderedPackage);
         }
 
         return $orderedPackages;
     }
 
     /**
-     * Exports Order into Balikobot system
+     * Exports order into Balikobot system
      *
      * @param \Inspirum\Balikobot\Model\Aggregates\OrderedPackageCollection $packages
      *
@@ -88,7 +97,7 @@ class Balikobot
     }
 
     /**
-     * Exports Order into Balikobot system
+     * Exports order into Balikobot system
      *
      * @param \Inspirum\Balikobot\Model\Values\OrderedPackage $package
      *
@@ -102,43 +111,103 @@ class Balikobot
     }
 
     /**
-     * Order shipment.
+     * Order shipment
      *
      * @param \Inspirum\Balikobot\Model\Aggregates\OrderedPackageCollection $packages
-     * @param \DateTime|null                                                $date
      *
      * @return \Inspirum\Balikobot\Model\Values\OrderedShipment
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
-    public function orderShipment(OrderedPackageCollection $packages, DateTime $date = null): OrderedShipment
+    public function orderShipment(OrderedPackageCollection $packages): OrderedShipment
     {
-        if ($date !== null) {
-            $date->setTime(0, 0, 0);
-        }
-
-        $response = $this->client->orderShipment($packages->getShipper(), $packages->getPackageIds(), $date);
+        $response = $this->client->orderShipment($packages->getShipper(), $packages->getPackageIds());
 
         $orderedShipment = OrderedShipment::newInstanceFromData(
             $packages->getShipper(),
             $packages->getPackageIds(),
-            $response,
-            $date
+            $response
         );
 
         return $orderedShipment;
     }
 
     /**
+     * Track package
+     *
      * @param \Inspirum\Balikobot\Model\Values\OrderedPackage $package
      *
-     * @return \Inspirum\Balikobot\Model\Values\PackageStatus[]
+     * @return array<\Inspirum\Balikobot\Model\Values\PackageStatus>|\Inspirum\Balikobot\Model\Values\PackageStatus[]
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
     public function trackPackage(OrderedPackage $package): array
     {
-        $response = $this->client->trackPackage($package->getShipper(), $package->getCarrierId());
+        $packages = new OrderedPackageCollection();
+        $packages->add($package);
+
+        $response = $this->trackPackages($packages);
+
+        return $response[0];
+    }
+
+    /**
+     * Track packages
+     *
+     * @param \Inspirum\Balikobot\Model\Aggregates\OrderedPackageCollection $packages
+     *
+     * @return array<array<\Inspirum\Balikobot\Model\Values\PackageStatus>>|\Inspirum\Balikobot\Model\Values\PackageStatus[][]
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function trackPackages(OrderedPackageCollection $packages): array
+    {
+        $response = $this->client->trackPackages($packages->getShipper(), $packages->getCarrierIds());
+
+        $statuses = [];
+
+        foreach ($response as $i => $responseStatuses) {
+            $statuses[$i] = [];
+
+            foreach ($responseStatuses as $status) {
+                $statuses[$i][] = PackageStatus::newInstanceFromData($status);
+            }
+        }
+
+        return $statuses;
+    }
+
+    /**
+     * Track package last status
+     *
+     * @param \Inspirum\Balikobot\Model\Values\OrderedPackage $package
+     *
+     * @return \Inspirum\Balikobot\Model\Values\PackageStatus
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function trackPackageLastStatus(OrderedPackage $package): PackageStatus
+    {
+        $packages = new OrderedPackageCollection();
+        $packages->add($package);
+
+        $response = $this->trackPackagesLastStatus($packages);
+
+        return $response[0];
+    }
+
+    /**
+     * Track package last status
+     *
+     * @param \Inspirum\Balikobot\Model\Aggregates\OrderedPackageCollection $packages
+     *
+     * @return array<\Inspirum\Balikobot\Model\Values\PackageStatus>|\Inspirum\Balikobot\Model\Values\PackageStatus[]
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function trackPackagesLastStatus(OrderedPackageCollection $packages): array
+    {
+        $response = $this->client->trackPackagesLastStatus($packages->getShipper(), $packages->getCarrierIds());
 
         $statuses = [];
 
@@ -150,25 +219,11 @@ class Balikobot
     }
 
     /**
-     * @param \Inspirum\Balikobot\Model\Values\OrderedPackage $package
+     * Get overview for given shipper
      *
-     * @return \Inspirum\Balikobot\Model\Values\PackageStatus
-     *
-     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
-     */
-    public function trackPackageLastStatus(OrderedPackage $package): PackageStatus
-    {
-        $response = $this->client->trackPackageLastStatus($package->getShipper(), $package->getCarrierId());
-
-        $status = PackageStatus::newInstanceFromData($response);
-
-        return $status;
-    }
-
-    /**
      * @param string $shipper
      *
-     * @return \Inspirum\Balikobot\Model\Aggregates\OrderedPackageCollection
+     * @return \Inspirum\Balikobot\Model\Aggregates\OrderedPackageCollection|\Inspirum\Balikobot\Model\Values\OrderedPackage[]
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
@@ -176,21 +231,23 @@ class Balikobot
     {
         $response = $this->client->getOverview($shipper);
 
-        // create return value object
         $orderedPackages = new OrderedPackageCollection();
 
-        foreach ($response as $i => $package) {
-            $orderedPackages->add(OrderedPackage::newInstanceFromData(
+        foreach ($response as $package) {
+            $orderedPackage = OrderedPackage::newInstanceFromData(
                 $shipper,
-                $package['eshop_id'],
+                (string) $package['eshop_id'],
                 $package
-            ));
+            );
+            $orderedPackages->add($orderedPackage);
         }
 
         return $orderedPackages;
     }
 
     /**
+     * Get labels for orders
+     *
      * @param \Inspirum\Balikobot\Model\Aggregates\OrderedPackageCollection $packages
      *
      * @return string
@@ -199,9 +256,9 @@ class Balikobot
      */
     public function getLabels(OrderedPackageCollection $packages): string
     {
-        $response = $this->client->getLabels($packages->getShipper(), $packages->getPackageIds());
+        $labelUrl = $this->client->getLabels($packages->getShipper(), $packages->getPackageIds());
 
-        return $response;
+        return $labelUrl;
     }
 
     /**
@@ -217,16 +274,16 @@ class Balikobot
     {
         $response = $this->client->getPackageInfo($package->getShipper(), $package->getPackageId());
 
+        unset($response['package_id']);
+        unset($response['eshop_id']);
+        unset($response['carrier_id']);
+        unset($response['track_url']);
+        unset($response['label_url']);
+        unset($response['carrier_id_swap']);
+        unset($response['pieces']);
+
         $options              = $response;
         $options[Option::EID] = $package->getBatchId();
-
-        unset($options['package_id']);
-        unset($options['eshop_id']);
-        unset($options['carrier_id']);
-        unset($options['track_url']);
-        unset($options['label_url']);
-        unset($options['carrier_id_swap']);
-        unset($options['pieces']);
 
         $package = new Package($options);
 
@@ -259,15 +316,34 @@ class Balikobot
     /**
      * Returns available services for the given shipper
      *
-     * @param string $shipper
+     * @param string      $shipper
+     * @param string|null $country
      *
-     * @return string[]
+     * @return array<string,string>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
-    public function getServices(string $shipper): array
+    public function getServices(string $shipper, string $country = null): array
     {
-        $services = $this->client->getServices($shipper);
+        $usedRequestVersion = Shipper::resolveServicesRequestVersion($shipper);
+
+        $services = $this->client->getServices($shipper, $country, $usedRequestVersion);
+
+        return $services;
+    }
+
+    /**
+     * Returns available B2A services for the given shipper
+     *
+     * @param string $shipper
+     *
+     * @return array<string,string>
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function getB2AServices(string $shipper): array
+    {
+        $services = $this->client->getB2AServices($shipper);
 
         return $services;
     }
@@ -277,7 +353,7 @@ class Balikobot
      *
      * @param string $shipper
      *
-     * @return string[]
+     * @return array<string>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
@@ -289,7 +365,7 @@ class Balikobot
     }
 
     /**
-     * Get all available branches.
+     * Get all available branches
      *
      * @return \Generator|\Inspirum\Balikobot\Model\Values\Branch[]
      *
@@ -297,7 +373,6 @@ class Balikobot
      */
     public function getBranches(): iterable
     {
-        // get all shipper service codes
         $shippers = $this->getShippers();
 
         foreach ($shippers as $shipper) {
@@ -306,7 +381,25 @@ class Balikobot
     }
 
     /**
-     * Get all available branches for given shipper.
+     * Get all available branches for countries
+     *
+     * @param array<string> $countries
+     *
+     * @return \Generator|\Inspirum\Balikobot\Model\Values\Branch[]
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function getBranchesForCountries(array $countries): iterable
+    {
+        $shippers = $this->getShippers();
+
+        foreach ($shippers as $shipper) {
+            yield from $this->getBranchesForShipperForCountries($shipper, $countries);
+        }
+    }
+
+    /**
+     * Get all available branches for given shipper
      *
      * @param string $shipper
      *
@@ -316,34 +409,71 @@ class Balikobot
      */
     public function getBranchesForShipper(string $shipper): iterable
     {
-        // get all services for shipper service
-        $services = array_keys($this->getServices($shipper));
+        $services = $this->getServicesForShipper($shipper);
 
-        // support shipper withou service type
-        if (empty($services)) {
-            $services = [null];
-        }
-
-        // get branches for all services
         foreach ($services as $service) {
             yield from $this->getBranchesForShipperService($shipper, $service);
         }
     }
 
     /**
-     * Get all available branches for given shipper and service type.
+     * Get all available branches for given shipper for countries
      *
-     * @param string      $shipper
-     * @param string|null $service
+     * @param string        $shipper
+     * @param array<string> $countries
      *
      * @return \Generator|\Inspirum\Balikobot\Model\Values\Branch[]
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
-    public function getBranchesForShipperService(string $shipper, ?string $service): iterable
+    public function getBranchesForShipperForCountries(string $shipper, array $countries): iterable
     {
-        $fullData = Shipper::hasFullBranchesSupport($shipper, $service);
-        $branches = $this->client->getBranches($shipper, $service, $fullData);
+        $services = $this->getServicesForShipper($shipper);
+
+        foreach ($services as $service) {
+            yield from $this->getBranchesForShipperServiceForCountries($shipper, $service, $countries);
+        }
+    }
+
+    /**
+     * Get services for shipper
+     *
+     * @param string $shipper
+     *
+     * @return array<string|null>
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    private function getServicesForShipper(string $shipper): array
+    {
+        $services = array_keys($this->getServices($shipper)) ?: [null];
+
+        return $services;
+    }
+
+    /**
+     * Get all available branches for given shipper and service type
+     *
+     * @param string      $shipper
+     * @param string|null $service
+     * @param string|null $country
+     *
+     * @return \Generator|\Inspirum\Balikobot\Model\Values\Branch[]
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function getBranchesForShipperService(string $shipper, ?string $service, string $country = null): iterable
+    {
+        $useFullbranchRequest = Shipper::hasFullBranchesSupport($shipper, $service);
+        $usedRequestVersion   = Shipper::resolveBranchesRequestVersion($shipper, $service);
+
+        $branches = $this->client->getBranches(
+            $shipper,
+            $service,
+            $useFullbranchRequest,
+            $country,
+            $usedRequestVersion
+        );
 
         foreach ($branches as $branch) {
             yield Branch::newInstanceFromData($shipper, $service, $branch);
@@ -351,7 +481,59 @@ class Balikobot
     }
 
     /**
-     * Get all available branches for given shipper.
+     * Get all available branches for given shipper and service type for countries
+     *
+     * @param string        $shipper
+     * @param string|null   $service
+     * @param array<string> $countries
+     *
+     * @return \Generator|\Inspirum\Balikobot\Model\Values\Branch[]
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function getBranchesForShipperServiceForCountries(
+        string $shipper,
+        ?string $service,
+        array $countries
+    ): iterable {
+        $branches = $this->getAllBranchesForShipperServiceForCountries($shipper, $service, $countries);
+
+        foreach ($branches as $branch) {
+            if (in_array($branch->getCountry(), $countries)) {
+                yield $branch;
+            }
+        }
+    }
+
+    /**
+     * Get all available branches for given shipper and service type filtered by countries if possible
+     *
+     * @param string        $shipper
+     * @param string|null   $service
+     * @param array<string> $countries
+     *
+     * @return \Generator|\Inspirum\Balikobot\Model\Values\Branch[]
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    private function getAllBranchesForShipperServiceForCountries(
+        string $shipper,
+        ?string $service,
+        array $countries
+    ): iterable {
+        if (Shipper::hasBranchCountryFilterSupport($shipper) === false) {
+            yield from $this->getBranchesForShipperService($shipper, $service);
+
+            return;
+        }
+
+        foreach ($countries as $country) {
+            yield from $this->getBranchesForShipperService($shipper, $service, $country);
+        }
+    }
+
+    /**
+     * Get all available branches for given shipper
      *
      * @param string      $shipper
      * @param string      $country
@@ -360,6 +542,7 @@ class Balikobot
      * @param string|null $street
      * @param int|null    $maxResults
      * @param float|null  $radius
+     * @param string|null $type
      *
      * @return \Generator|\Inspirum\Balikobot\Model\Values\Branch[]
      *
@@ -372,7 +555,8 @@ class Balikobot
         string $postcode = null,
         string $street = null,
         int $maxResults = null,
-        float $radius = null
+        float $radius = null,
+        string $type = null
     ): iterable {
         $branches = $this->client->getBranchesForLocation(
             $shipper,
@@ -381,7 +565,8 @@ class Balikobot
             $postcode,
             $street,
             $maxResults,
-            $radius
+            $radius,
+            $type
         );
 
         foreach ($branches as $branch) {
@@ -394,7 +579,7 @@ class Balikobot
      *
      * @param string $shipper
      *
-     * @return array[]
+     * @return array<array<int|string,array<string,array>>>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
@@ -410,7 +595,7 @@ class Balikobot
      *
      * @param string $shipper
      *
-     * @return array[]
+     * @return array<array<int|string,string>>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
@@ -434,15 +619,15 @@ class Balikobot
      */
     public function getPostCodes(string $shipper, string $service, string $country = null): iterable
     {
-        $postcodes = $this->client->getPostCodes($shipper, $service, $country);
+        $postCodes = $this->client->getPostCodes($shipper, $service, $country);
 
-        foreach ($postcodes as $postcode) {
+        foreach ($postCodes as $postcode) {
             yield PostCode::newInstanceFromData($shipper, $service, $postcode);
         }
     }
 
     /**
-     * Check package(s) data.
+     * Check package(s) data
      *
      * @param \Inspirum\Balikobot\Model\Aggregates\PackageCollection $packages
      *
@@ -460,7 +645,7 @@ class Balikobot
      *
      * @param string $shipper
      *
-     * @return string[]
+     * @return array<string>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
@@ -469,5 +654,83 @@ class Balikobot
         $units = $this->client->getAdrUnits($shipper);
 
         return $units;
+    }
+
+    /**
+     * Returns available activated services for the given shipper
+     *
+     * @param string $shipper
+     *
+     * @return array<string,mixed>
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function getActivatedServices(string $shipper): array
+    {
+        $services = $this->client->getActivatedServices($shipper);
+
+        return $services;
+    }
+
+    /**
+     * Order shipments from place B (typically supplier / previous consignee) to place A (shipping point)
+     *
+     * @param \Inspirum\Balikobot\Model\Aggregates\PackageCollection $packages
+     *
+     * @return \Inspirum\Balikobot\Model\Aggregates\OrderedPackageCollection|\Inspirum\Balikobot\Model\Values\OrderedPackage[]
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function orderB2AShipment(PackageCollection $packages): OrderedPackageCollection
+    {
+        $response = $this->client->orderB2AShipment($packages->getShipper(), $packages->toArray());
+
+        $orderedPackages = new OrderedPackageCollection();
+
+        foreach ($response as $i => $package) {
+            $orderedPackage = OrderedPackage::newInstanceFromData(
+                $packages->getShipper(),
+                $packages->offsetGet($i)->getEID(),
+                $package
+            );
+            $orderedPackages->add($orderedPackage);
+        }
+
+        return $orderedPackages;
+    }
+
+    /**
+     * Get PDF link with signed consignment delivery document by the recipient
+     *
+     * @param \Inspirum\Balikobot\Model\Values\OrderedPackage $package
+     *
+     * @return string
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function getProofOfDelivery(OrderedPackage $package): string
+    {
+        $packages = new OrderedPackageCollection();
+        $packages->add($package);
+
+        $linkUrls = $this->getProofOfDeliveries($packages);
+
+        return $linkUrls[0];
+    }
+
+    /**
+     * Get array of PDF links with signed consignment delivery document by the recipient
+     *
+     * @param \Inspirum\Balikobot\Model\Aggregates\OrderedPackageCollection $packages
+     *
+     * @return array<string>
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function getProofOfDeliveries(OrderedPackageCollection $packages): array
+    {
+        $linkUrls = $this->client->getProofOfDeliveries($packages->getShipper(), $packages->getCarrierIds());
+
+        return $linkUrls;
     }
 }

@@ -25,7 +25,7 @@ Offers implementation of Balikobot API described in the [documentation](#version
 
 ```php
 // init balikobot class
-$requester = new Requester($user, $key);
+$requester = new Requester($apiUser, $apiKey);
 $balikobot = new Balikobot($requester);
 $data      = [];
 
@@ -85,7 +85,7 @@ var_dump($data);
 
 ## System requirements
 
-* [PHP 7.1](http://php.net/releases/7_1_0.php)
+* [PHP 7.1+](http://php.net/releases/7_1_0.php)
 * [ext-curl](http://php.net/curl)
 * [ext-json](http://php.net/json)
 
@@ -99,7 +99,7 @@ $ composer require inspirum/balikobot
 
 ## Version
 
-Support all options for Balikobot API described in the [documentation][link-api] (v1.857, 2019-04-26).
+Support all options for Balikobot API described in the [documentation][link-api] (v1.883, 2020-04-24).
 
 
 ## Usage
@@ -124,13 +124,13 @@ Extension over Client that uses custom DTO classes as an input and output for it
 To run unit tests, run:
 
 ```bash
-$ composer test
+$ composer test:test
 ```
 
 To show coverage, run:
 
 ```bash
-$ composer test-coverage
+$ composer test:coverage
 ```
 
 For testing purposes, you can use these credentials:

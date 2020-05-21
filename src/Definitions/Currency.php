@@ -7,7 +7,7 @@ use InvalidArgumentException;
 /**
  * Currencies in ISO 4217 format
  */
-class Currency
+final class Currency
 {
     /**
      * Dolar
@@ -241,7 +241,7 @@ class Currency
     public const GBP = 'GBP';
 
     /**
-     * @return array
+     * @return array<string>
      */
     public static function all(): array
     {

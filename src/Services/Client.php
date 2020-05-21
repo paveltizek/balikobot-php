@@ -4,21 +4,21 @@ namespace Inspirum\Balikobot\Services;
 
 use DateTime;
 use Inspirum\Balikobot\Contracts\RequesterInterface;
-use Inspirum\Balikobot\Definitions\Country;
+use Inspirum\Balikobot\Definitions\API;
 use Inspirum\Balikobot\Definitions\Request;
 use Inspirum\Balikobot\Exceptions\BadRequestException;
 
 class Client
 {
     /**
-     * API requester.
+     * API requester
      *
      * @var \Inspirum\Balikobot\Contracts\RequesterInterface
      */
     private $requester;
 
     /**
-     * Balikobot API client.
+     * Balikobot API client
      *
      * @param \Inspirum\Balikobot\Contracts\RequesterInterface $requester
      */
@@ -28,31 +28,37 @@ class Client
     }
 
     /**
-     * Add package(s) to the Balikobot.
+     * Add package(s) to the Balikobot
      *
-     * @param string $shipper
-     * @param array  $packages
+     * @param string                     $shipper
+     * @param array<array<string,mixed>> $packages
+     * @param string|null                $version
+     * @param mixed|null                 $labelsUrl
      *
-     * @return array[]
+     * @return array<array<string,mixed>>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
-    public function addPackages(string $shipper, array $packages): array
+    public function addPackages(string $shipper, array $packages, string $version = null, &$labelsUrl = null): array
     {
-        $response = $this->requester->call('v1', $shipper, Request::ADD, $packages);
+        $response = $this->requester->call($version ?: API::V1, $shipper, Request::ADD, $packages);
 
         if (isset($response[0]['package_id']) === false) {
             throw new BadRequestException($response);
         }
 
 //        unset($response['labels_url']);
-        unset($response['status']);
+
+
+        if (count($response) !== count($packages)) {
+            throw new BadRequestException($response);
+        }
 
         return $response;
     }
 
     /**
-     * Drops a package from the Balikobot. The package must be not ordered.
+     * Drops a package from the Balikobot – the package must be not ordered
      *
      * @param string $shipper
      * @param int    $packageId
@@ -67,10 +73,10 @@ class Client
     }
 
     /**
-     * Drops a package from the Balikobot. The package must be not ordered.
+     * Drops a package from the Balikobot – the package must be not ordered
      *
-     * @param string $shipper
-     * @param array  $packageIds
+     * @param string     $shipper
+     * @param array<int> $packageIds
      *
      * @return void
      *
@@ -78,17 +84,13 @@ class Client
      */
     public function dropPackages(string $shipper, array $packageIds): void
     {
-        $data = [];
-
-        foreach ($packageIds as $packageId) {
-            $data[] = ['id' => $packageId];
-        }
+        $data = $this->encapsulateIds($packageIds);
 
         if (count($data) === 0) {
             return;
         }
 
-        $this->requester->call('v1', $shipper, Request::DROP, $data);
+        $this->requester->call(API::V1, $shipper, Request::DROP, $data);
     }
 
     /**
@@ -97,25 +99,44 @@ class Client
      * @param string $shipper
      * @param string $carrierId
      *
-     * @return array[]
+     * @return array<array<string,int|string>>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
     public function trackPackage(string $shipper, string $carrierId): array
     {
-        $data = [
-            0 => [
-                'id' => $carrierId,
-            ],
-        ];
+        $response = $this->trackPackages($shipper, [$carrierId]);
 
-        $response = $this->requester->call('v2', $shipper, Request::TRACK, $data);
+        return $response[0];
+    }
+
+    /**
+     * Tracks a packages
+     *
+     * @param string        $shipper
+     * @param array<string> $carrierIds
+     *
+     * @return array<array<array<string,int|string>>>
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function trackPackages(string $shipper, array $carrierIds): array
+    {
+        $data = $this->encapsulateIds($carrierIds);
+
+        $response = $this->requester->call(API::V2, $shipper, Request::TRACK, $data, false);
 
         if (empty($response[0])) {
             throw new BadRequestException($response);
         }
 
-        return $response[0];
+        unset($response['status']);
+
+        if (count($response) !== count($carrierIds)) {
+            throw new BadRequestException($response);
+        }
+
+        return $response;
     }
 
     /**
@@ -124,35 +145,52 @@ class Client
      * @param string $shipper
      * @param string $carrierId
      *
-     * @return array
+     * @return array<string,int|string>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
     public function trackPackageLastStatus(string $shipper, string $carrierId): array
     {
-        $data = [
-            0 => [
-                'id' => $carrierId,
-            ],
-        ];
+        $response = $this->trackPackagesLastStatus($shipper, [$carrierId]);
 
-        $response = $this->requester->call('v1', $shipper, Request::TRACK_STATUS, $data, false);
+        return $response[0];
+    }
 
-        if (empty($response[0])) {
+    /**
+     * Tracks a package, get the last info
+     *
+     * @param string        $shipper
+     * @param array<string> $carrierIds
+     *
+     * @return array<array<string,int|string|null>>
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function trackPackagesLastStatus(string $shipper, array $carrierIds): array
+    {
+        $data = $this->encapsulateIds($carrierIds);
+
+        $response = $this->requester->call(API::V1, $shipper, Request::TRACK_STATUS, $data, false);
+
+        unset($response['status']);
+
+        if (count($response) !== count($carrierIds)) {
             throw new BadRequestException($response);
         }
 
-        if (isset($response[0]['status']) && ((int) $response[0]['status']) !== 200) {
-            throw new BadRequestException($response);
+        $formatedStatuses = [];
+
+        foreach ($response as $responseItem) {
+            $this->validateStatus($responseItem, $response);
+
+            $formatedStatuses[] = [
+                'name'      => $responseItem['status_text'],
+                'status_id' => $responseItem['status_id'],
+                'date'      => null,
+            ];
         }
 
-        $status = [
-            'name'      => $response[0]['status_text'],
-            'status_id' => $response[0]['status_id'],
-            'date'      => null,
-        ];
-
-        return $status;
+        return $formatedStatuses;
     }
 
     /**
@@ -160,13 +198,13 @@ class Client
      *
      * @param string $shipper
      *
-     * @return array[]
+     * @return array<array<string,int|string>>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
     public function getOverview(string $shipper): array
     {
-        $response = $this->requester->call('v1', $shipper, Request::OVERVIEW, [], false);
+        $response = $this->requester->call(API::V1, $shipper, Request::OVERVIEW, [], false);
 
         return $response;
     }
@@ -174,8 +212,8 @@ class Client
     /**
      * Gets labels
      *
-     * @param string $shipper
-     * @param array  $packageIds
+     * @param string     $shipper
+     * @param array<int> $packageIds
      *
      * @return string
      *
@@ -187,9 +225,11 @@ class Client
             'package_ids' => $packageIds,
         ];
 
-        $response = $this->requester->call('v1', $shipper, Request::LABELS, $data);
+        $response = $this->requester->call(API::V1, $shipper, Request::LABELS, $data);
 
-        return $response['labels_url'];
+        $formattedResponse = $response['labels_url'];
+
+        return $formattedResponse;
     }
 
     /**
@@ -198,38 +238,34 @@ class Client
      * @param string $shipper
      * @param int    $packageId
      *
-     * @return array
+     * @return array<string,int|string>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
     public function getPackageInfo(string $shipper, int $packageId): array
     {
-        $response = $this->requester->call('v1', $shipper, Request::PACKAGE . '/' . $packageId, [], false);
+        $response = $this->requester->call(API::V1, $shipper, Request::PACKAGE . '/' . $packageId, [], false);
 
         return $response;
     }
 
     /**
-     * Order shipment for packages.
+     * Order shipment for packages
      *
-     * @param string         $shipper
-     * @param array          $packageIds
-     * @param \DateTime|null $date
-     * @param string|null    $note
+     * @param string     $shipper
+     * @param array<int> $packageIds
      *
-     * @return array
+     * @return array<string,int|string>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
-    public function orderShipment(string $shipper, array $packageIds, DateTime $date = null, string $note = null): array
+    public function orderShipment(string $shipper, array $packageIds): array
     {
         $data = [
             'package_ids' => $packageIds,
-            'date'        => $date ? $date->format('Y-m-d') : null,
-            'note'        => $note,
         ];
 
-        $response = $this->requester->call('v1', $shipper, Request::ORDER, $data);
+        $response = $this->requester->call(API::V1, $shipper, Request::ORDER, $data);
 
         unset($response['status']);
 
@@ -237,18 +273,18 @@ class Client
     }
 
     /**
-     * Get order details.
+     * Get order details
      *
      * @param string $shipper
      * @param int    $orderId
      *
-     * @return array
+     * @return array<string,int|string|array>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
     public function getOrder(string $shipper, int $orderId): array
     {
-        $response = $this->requester->call('v1', $shipper, Request::ORDER_VIEW . '/' . $orderId, [], false);
+        $response = $this->requester->call(API::V1, $shipper, Request::ORDER_VIEW . '/' . $orderId, [], false);
 
         unset($response['status']);
 
@@ -256,7 +292,7 @@ class Client
     }
 
     /**
-     * Order pickup for packages.
+     * Order pickup for packages
      *
      * @param string      $shipper
      * @param \DateTime   $dateFrom
@@ -286,27 +322,45 @@ class Client
             'message'       => $message,
         ];
 
-        $this->requester->call('v1', $shipper, Request::ORDER_PICKUP, $data);
+        $this->requester->call(API::V1, $shipper, Request::ORDER_PICKUP, $data);
     }
 
     /**
      * Returns available services for the given shipper
      *
-     * @param string $shipper
+     * @param string      $shipper
+     * @param string|null $country
+     * @param string|null $version
      *
-     * @return string[]
+     * @return array<string,string>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
-    public function getServices(string $shipper): array
+    public function getServices(string $shipper, string $country = null, string $version = null): array
     {
-        $response = $this->requester->call('v1', $shipper, Request::SERVICES);
+        $response = $this->requester->call($version ?: API::V1, $shipper, Request::SERVICES . '/' . $country);
 
-        if (isset($response['service_types']) === false) {
-            return [];
-        }
+        $formattedResponse = $response['service_types'] ?? [];
 
-        return $response['service_types'];
+        return $formattedResponse;
+    }
+
+    /**
+     * Returns available B2A services for the given shipper
+     *
+     * @param string $shipper
+     *
+     * @return array<string,string>
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function getB2AServices(string $shipper): array
+    {
+        $response = $this->requester->call(API::V1, $shipper, Request::B2A . '/' . Request::SERVICES);
+
+        $formattedResponse = $response['service_types'] ?? [];
+
+        return $formattedResponse;
     }
 
     /**
@@ -314,50 +368,51 @@ class Client
      *
      * @param string $shipper
      *
-     * @return string[]
+     * @return array<string,string>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
     public function getManipulationUnits(string $shipper): array
     {
-        $response = $this->requester->call('v1', $shipper, Request::MANIPULATION_UNITS);
+        $response = $this->requester->call(API::V1, $shipper, Request::MANIPULATION_UNITS);
 
-        if ($response['units'] === null) {
-            return [];
-        }
+        $formattedResponse = $this->normalizeResponseItems($response['units'] ?? [], 'code', 'name');
 
-        $units = [];
-
-        foreach ($response['units'] as $item) {
-            $units[$item['code']] = $item['name'];
-        }
-
-        return $units;
+        return $formattedResponse;
     }
 
     /**
      * Returns available branches for the given shipper and its service
-     * Full branches instead branches request.
+     * Full branches instead branches request
      *
-     * @param string $shipper
-     * @param string $service
-     * @param bool   $fullData
+     * @param string      $shipper
+     * @param string|null $service
+     * @param bool        $fullBranchRequest
+     * @param string|null $country
+     * @param string|null $version
      *
-     * @return array[]
+     * @return array<array<string,mixed>>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
-    public function getBranches(string $shipper, string $service = null, bool $fullData = false): array
-    {
-        $request = $fullData ? Request::FULL_BRANCHES : Request::BRANCHES;
+    public function getBranches(
+        string $shipper,
+        ?string $service,
+        bool $fullBranchRequest = false,
+        string $country = null,
+        string $version = null
+    ): array {
+        $usedRequest = $fullBranchRequest ? Request::FULL_BRANCHES : Request::BRANCHES;
 
-        $response = $this->requester->call('v1', $shipper, $request . '/' . $service);
+        $response = $this->requester->call(
+            $version ?: API::V1,
+            $shipper,
+            $usedRequest . '/' . $service . '/' . $country
+        );
 
-        if ($response['branches'] === null) {
-            return [];
-        }
+        $formattedResponse = $response['branches'] ?? [];
 
-        return $response['branches'];
+        return $formattedResponse;
     }
 
     /**
@@ -370,8 +425,9 @@ class Client
      * @param string|null $street
      * @param int|null    $maxResults
      * @param float|null  $radius
+     * @param string|null $type
      *
-     * @return array[]
+     * @return array<array<string,mixed>>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
@@ -382,10 +438,9 @@ class Client
         string $postcode = null,
         string $street = null,
         int $maxResults = null,
-        float $radius = null
+        float $radius = null,
+        string $type = null
     ): array {
-        Country::validateCode($country);
-
         $data = [
             'country'     => $country,
             'city'        => $city,
@@ -393,17 +448,14 @@ class Client
             'street'      => $street,
             'max_results' => $maxResults,
             'radius'      => $radius,
+            'type'        => $type,
         ];
 
-        $data = array_filter($data);
+        $response = $this->requester->call(API::V1, $shipper, Request::BRANCH_LOCATOR, array_filter($data));
 
-        $response = $this->requester->call('v1', $shipper, Request::BRANCH_LOCATOR, $data);
+        $formattedResponse = $response['branches'] ?? [];
 
-        if ($response['branches'] === null) {
-            return [];
-        }
-
-        return $response['branches'];
+        return $formattedResponse;
     }
 
     /**
@@ -411,25 +463,21 @@ class Client
      *
      * @param string $shipper
      *
-     * @return array[]
+     * @return array<array<int|string,array<string,array>>>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
     public function getCodCountries(string $shipper): array
     {
-        $response = $this->requester->call('v1', $shipper, Request::CASH_ON_DELIVERY_COUNTRIES);
+        $response = $this->requester->call(API::V1, $shipper, Request::CASH_ON_DELIVERY_COUNTRIES);
 
-        if ($response['service_types'] === null) {
-            return [];
-        }
+        $formattedResponse = $this->normalizeResponseItems(
+            $response['service_types'] ?? [],
+            'service_type',
+            'cod_countries'
+        );
 
-        $services = [];
-
-        foreach ($response['service_types'] as $item) {
-            $services[$item['service_type']] = $item['cod_countries'];
-        }
-
-        return $services;
+        return $formattedResponse;
     }
 
     /**
@@ -437,25 +485,21 @@ class Client
      *
      * @param string $shipper
      *
-     * @return array[]
+     * @return array<array<int|string,string>>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
     public function getCountries(string $shipper): array
     {
-        $response = $this->requester->call('v1', $shipper, Request::COUNTRIES);
+        $response = $this->requester->call(API::V1, $shipper, Request::COUNTRIES);
 
-        if ($response['service_types'] === null) {
-            return [];
-        }
+        $formattedResponse = $this->normalizeResponseItems(
+            $response['service_types'] ?? [],
+            'service_type',
+            'countries'
+        );
 
-        $services = [];
-
-        foreach ($response['service_types'] as $item) {
-            $services[$item['service_type']] = $item['countries'];
-        }
-
-        return $services;
+        return $formattedResponse;
     }
 
     /**
@@ -465,47 +509,36 @@ class Client
      * @param string      $service
      * @param string|null $country
      *
-     * @return array[]
+     * @return array<array<string,mixed>>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
     public function getPostCodes(string $shipper, string $service, string $country = null): array
     {
-        if ($country !== null) {
-            Country::validateCode($country);
+        $response = $this->requester->call(API::V1, $shipper, Request::ZIP_CODES . '/' . $service . '/' . $country);
 
-            $urlPath = $service . '/' . $country;
-        } else {
-            $urlPath = $service;
-        }
+        $country = $response['country'] ?? $country;
 
-        $response = $this->requester->call('v1', $shipper, Request::ZIP_CODES . '/' . $urlPath);
+        $formattedResponse = [];
 
-        if ($response['zip_codes'] === null) {
-            return [];
-        }
-
-        $country   = $response['country'] ?? $country;
-        $postCodes = [];
-
-        foreach ($response['zip_codes'] as $postCode) {
-            $postCodes[] = [
-                'postcode'     => $postCode['zip'] ?? ($postCode['zip_start'] ?? null),
-                'postcode_end' => $postCode['zip_end'] ?? null,
-                'city'         => $postCode['city'] ?? null,
-                'country'      => $postCode['country'] ?? $country,
-                '1B'           => (bool) ($postCode['1B'] ?? false),
+        foreach ($response['zip_codes'] ?? [] as $responseItem) {
+            $formattedResponse[] = [
+                'postcode'     => $responseItem['zip'] ?? ($responseItem['zip_start'] ?? null),
+                'postcode_end' => $responseItem['zip_end'] ?? null,
+                'city'         => $responseItem['city'] ?? null,
+                'country'      => $responseItem['country'] ?? $country,
+                '1B'           => (bool) ($responseItem['1B'] ?? false),
             ];
         }
 
-        return $postCodes;
+        return $formattedResponse;
     }
 
     /**
-     * Check package(s) data.
+     * Check package(s) data
      *
-     * @param string $shipper
-     * @param array  $packages
+     * @param string               $shipper
+     * @param array<array<string>> $packages
      *
      * @return void
      *
@@ -513,7 +546,7 @@ class Client
      */
     public function checkPackages(string $shipper, array $packages): void
     {
-        $this->requester->call('v1', $shipper, Request::CHECK, $packages);
+        $this->requester->call(API::V1, $shipper, Request::CHECK, $packages);
     }
 
     /**
@@ -521,24 +554,162 @@ class Client
      *
      * @param string $shipper
      *
-     * @return string[]
+     * @return array<string>
      *
      * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
      */
     public function getAdrUnits(string $shipper): array
     {
-        $response = $this->requester->call('v1', $shipper, Request::ADR_UNITS);
+        $response = $this->requester->call(API::V1, $shipper, Request::ADR_UNITS);
 
-        if ($response['units'] === null) {
-            return [];
+        $formattedResponse = $this->normalizeResponseItems($response['units'] ?? [], 'code', 'name');
+
+        return $formattedResponse;
+    }
+
+    /**
+     * Returns available activated services for the given shipper
+     *
+     * @param string $shipper
+     *
+     * @return array<string,mixed>
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function getActivatedServices(string $shipper): array
+    {
+        $response = $this->requester->call(API::V1, $shipper, Request::ACTIVATEDSERVICES);
+
+        unset($response['status']);
+
+        return $response;
+    }
+
+    /**
+     * Order shipments from place B (typically supplier / previous consignee) to place A (shipping point)
+     *
+     * @param string                     $shipper
+     * @param array<array<string,mixed>> $packages
+     *
+     * @return array<array<string,mixed>>
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function orderB2AShipment(string $shipper, array $packages): array
+    {
+        $response = $this->requester->call(API::V1, $shipper, Request::B2A, $packages);
+
+        if (isset($response[0]['package_id']) === false) {
+            throw new BadRequestException($response);
         }
 
-        $units = [];
+        unset($response['status']);
 
-        foreach ($response['units'] as $item) {
-            $units[$item['code']] = $item['name'];
+        if (count($response) !== count($packages)) {
+            throw new BadRequestException($response);
         }
 
-        return $units;
+        return $response;
+    }
+
+    /**
+     * Get PDF link with signed consignment delivery document by the recipient
+     *
+     * @param string $shipper
+     * @param string $carrierId
+     *
+     * @return string
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function getProofOfDelivery(string $shipper, string $carrierId): string
+    {
+        $response = $this->getProofOfDeliveries($shipper, [$carrierId]);
+
+        return $response[0];
+    }
+
+    /**
+     * Get array of PDF links with signed consignment delivery document by the recipient
+     *
+     * @param string        $shipper
+     * @param array<string> $carrierIds
+     *
+     * @return array<string>
+     *
+     * @throws \Inspirum\Balikobot\Contracts\ExceptionInterface
+     */
+    public function getProofOfDeliveries(string $shipper, array $carrierIds): array
+    {
+        $data = $this->encapsulateIds($carrierIds);
+
+        $response = $this->requester->call(API::V1, $shipper, Request::PROOF_OF_DELIVERY, $data, false);
+
+        unset($response['status']);
+
+        if (count($response) !== count($carrierIds)) {
+            throw new BadRequestException($response);
+        }
+
+        $formatedLinks = [];
+
+        foreach ($response as $responseItem) {
+            $this->validateStatus($responseItem, $response);
+
+            $formatedLinks[] = $responseItem['file_url'];
+        }
+
+        return $formatedLinks;
+    }
+
+    /**
+     * Validate response item status
+     *
+     * @param array<mixed,mixed> $responseItem
+     * @param array<mixed,mixed> $response
+     *
+     * @return void
+     */
+    private function validateStatus(array $responseItem, array $response): void
+    {
+        if (isset($responseItem['status']) && ((int) $responseItem['status']) !== 200) {
+            throw new BadRequestException($response);
+        }
+    }
+
+    /**
+     * Normalize response items
+     *
+     * @param array<array<string,string>> $items
+     * @param string                      $keyName
+     * @param string                      $valueName
+     *
+     * @return array<string,mixed>
+     */
+    private function normalizeResponseItems(array $items, string $keyName, string $valueName): array
+    {
+        $formattedResponse = [];
+
+        foreach ($items as $item) {
+            $formattedResponse[$item[$keyName]] = $item[$valueName];
+        }
+
+        return $formattedResponse;
+    }
+
+    /**
+     * Encapsulate ids
+     *
+     * @param array<int|string> $ids
+     *
+     * @return array<array<int|string>>
+     */
+    private function encapsulateIds(array $ids): array
+    {
+        return array_map(function ($carrierId) {
+            return [
+                'id' => $carrierId,
+            ];
+        }, $ids);
     }
 }

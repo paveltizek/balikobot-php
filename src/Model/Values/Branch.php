@@ -170,7 +170,7 @@ class Branch
     private $openingSunday = null;
 
     /**
-     * Branch constructor.
+     * Branch constructor
      *
      * @param string      $shipper
      * @param string|null $service
@@ -529,7 +529,7 @@ class Branch
     }
 
     /**
-     * Set branch ID.
+     * Set branch ID
      *
      * @return void
      */
@@ -539,14 +539,15 @@ class Branch
     }
 
     /**
-     * Resolve branch ID.
+     * Resolve branch ID
      *
      * @return string
      */
     private function resolveBranchId(): string
     {
         // get key used in branch_id when calling add request
-        if ($this->shipper === Shipper::CP
+        if (
+            $this->shipper === Shipper::CP
             || $this->shipper === Shipper::SP
             || ($this->shipper === Shipper::ULOZENKA && $this->service === ServiceType::ULOZENKA_CP_NP)
         ) {
@@ -567,23 +568,27 @@ class Branch
     /**
      * New instance from data
      *
-     * @param string      $shipper
-     * @param string|null $service
-     * @param array       $data
+     * @param string              $shipper
+     * @param string|null         $service
+     * @param array<string,mixed> $data
      *
      * @return \Inspirum\Balikobot\Model\Values\Branch
      */
     public static function newInstanceFromData(string $shipper, ?string $service, array $data): self
     {
+        if ($shipper === Shipper::CP && $service === ServiceType::CP_NP) {
+            $data['country'] = $data['country'] ?? 'CZ';
+        }
+
         return new self(
             $shipper,
             $service,
             $data['id'] ?? null,
             $data['type'] ?? 'branch',
-            $data['name'] ?? $data['zip'],
+            $data['name'] ?? ($data['zip'] ?? '00000'),
             $data['city'] ?? '',
             $data['street'] ?? ($data['address'] ?? ''),
-            $data['zip'],
+            $data['zip'] ?? '00000',
             $data['country'] ?? null,
             $data['city_part'] ?? null,
             $data['district'] ?? null,
@@ -592,8 +597,8 @@ class Branch
             $data['photo_small'] ?? null,
             $data['photo_big'] ?? null,
             $data['url'] ?? null,
-            $data['latitude'] ?? null,
-            $data['longitude'] ?? null,
+            (isset($data['latitude']) ? (float) trim($data['latitude']) : null) ?: null,
+            (isset($data['longitude']) ? (float) trim($data['longitude']) : null) ?: null,
             $data['directions_global'] ?? null,
             $data['directions_car'] ?? null,
             $data['directions_public'] ?? null,

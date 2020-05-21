@@ -8,7 +8,7 @@ use Inspirum\Balikobot\Definitions\Option;
 trait DeliveryData
 {
     /**
-     * Set the item at a given offset.
+     * Set the item at a given offset
      *
      * @param string $key
      * @param mixed  $value
@@ -108,6 +108,16 @@ trait DeliveryData
     }
 
     /**
+     * @param string $fullAgeMinimum
+     *
+     * @return void
+     */
+    public function setFullAgeMinimum(string $fullAgeMinimum): void
+    {
+        $this->offsetSet(Option::FULL_AGE_MINIMUM, $fullAgeMinimum);
+    }
+
+    /**
      * @param string $fullAgeData
      *
      * @return void
@@ -155,6 +165,26 @@ trait DeliveryData
     public function setDelExworks(bool $delExworks = true): void
     {
         $this->offsetSet(Option::DEL_EXWORKS, (int) $delExworks);
+    }
+
+    /**
+     * @param string $delAccountNumber
+     *
+     * @return void
+     */
+    public function setDelAccountNumber(string $delAccountNumber): void
+    {
+        $this->offsetSet(Option::DEL_EXWORKS_ACCOUNT_NUMBER, $delAccountNumber);
+    }
+
+    /**
+     * @param string $delZip
+     *
+     * @return void
+     */
+    public function setDelZip(string $delZip): void
+    {
+        $this->offsetSet(Option::DEL_EXWORKS_ZIP, $delZip);
     }
 
     /**
@@ -305,5 +335,35 @@ trait DeliveryData
     public function setDeliveryCostsEUR(float $deliveryCosts): void
     {
         $this->offsetSet(Option::DELIVERY_COSTS_EUR, $deliveryCosts);
+    }
+
+    /**
+     * @param \DateTime $pickupDate
+     *
+     * @return void
+     */
+    public function setPickupDate(DateTime $pickupDate): void
+    {
+        $this->offsetSet(Option::PICKUP_DATE, $pickupDate->format('Y-m-d'));
+    }
+
+    /**
+     * @param \DateTime $pickupTimeFrom
+     *
+     * @return void
+     */
+    public function setPickupTimeFrom(DateTime $pickupTimeFrom): void
+    {
+        $this->offsetSet(Option::PICKUP_TIME_FROM, $pickupTimeFrom->format('H:i'));
+    }
+
+    /**
+     * @param \DateTime $pickupTimeTo
+     *
+     * @return void
+     */
+    public function setPickupTimeTo(DateTime $pickupTimeTo): void
+    {
+        $this->offsetSet(Option::PICKUP_TIME_TO, $pickupTimeTo->format('H:i'));
     }
 }

@@ -8,9 +8,9 @@ use Throwable;
 class BadRequestException extends AbstractException
 {
     /**
-     * BadRequestException constructor.
+     * BadRequestException constructor
      *
-     * @param array           $response
+     * @param array<mixed>    $response
      * @param int             $statusCode
      * @param \Throwable|null $previous
      * @param string|null     $message
@@ -27,9 +27,9 @@ class BadRequestException extends AbstractException
     }
 
     /**
-     * Set errors from response.
+     * Set errors from response
      *
-     * @param array $response
+     * @param array<mixed> $response
      *
      * @return void
      */
@@ -48,8 +48,8 @@ class BadRequestException extends AbstractException
     }
 
     /**
-     * @param int   $number
-     * @param array $response
+     * @param int          $number
+     * @param array<mixed> $response
      *
      * @return void
      */
@@ -70,8 +70,8 @@ class BadRequestException extends AbstractException
     }
 
     /**
-     * @param int   $number
-     * @param array $response
+     * @param int                      $number
+     * @param array<string,int|string> $response
      *
      * @return void
      */

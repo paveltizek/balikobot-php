@@ -10,24 +10,35 @@ use InvalidArgumentException;
 use IteratorAggregate;
 use RuntimeException;
 
-class OrderedPackageCollection implements IteratorAggregate, Countable, ArrayAccess
+/**
+ * @implements \ArrayAccess<int,\Inspirum\Balikobot\Model\Values\OrderedPackage>
+ * @implements \IteratorAggregate<int,\Inspirum\Balikobot\Model\Values\OrderedPackage>
+ */
+class OrderedPackageCollection implements ArrayAccess, Countable, IteratorAggregate
 {
     /**
-     * Packages.
+     * Packages
      *
-     * @var \Inspirum\Balikobot\Model\Values\OrderedPackage[]
+     * @var array<int,\Inspirum\Balikobot\Model\Values\OrderedPackage>
      */
     private $packages = [];
 
     /**
-     * Shipper code.
+     * Shipper code
      *
      * @var string|null
      */
     private $shipper;
 
     /**
-     * OrderedPackageCollection constructor.
+     * Labels URL
+     *
+     * @var string|null
+     */
+    private $labelsUrl;
+
+    /**
+     * OrderedPackageCollection constructor
      *
      * @param string|null $shipper
      */
@@ -37,15 +48,17 @@ class OrderedPackageCollection implements IteratorAggregate, Countable, ArrayAcc
     }
 
     /**
-     * Add package.
+     * Add package
      *
      * @param \Inspirum\Balikobot\Model\Values\OrderedPackage $package
+     *
+     * @return void
      *
      * @throws \InvalidArgumentException
      */
     public function add(OrderedPackage $package): void
     {
-        //validate package shipper
+        // validate package shipper
         $this->validateShipper($package);
 
         // add package to collection
@@ -53,23 +66,23 @@ class OrderedPackageCollection implements IteratorAggregate, Countable, ArrayAcc
     }
 
     /**
-     * Get shipper.
+     * Get shipper
      *
      * @return string
      */
     public function getShipper(): string
     {
         if ($this->shipper === null) {
-            throw new RuntimeException('No shipper is set.');
+            throw new RuntimeException('Collection is empty');
         }
 
         return $this->shipper;
     }
 
     /**
-     * Get package IDs.
+     * Get package IDs
      *
-     * @return int[]
+     * @return array<int>
      */
     public function getPackageIds(): array
     {
@@ -79,15 +92,33 @@ class OrderedPackageCollection implements IteratorAggregate, Countable, ArrayAcc
     }
 
     /**
-     * Get carrier IDs.
+     * Get carrier IDs
      *
-     * @return int[]
+     * @return array<string>
      */
     public function getCarrierIds(): array
     {
         return array_map(function (OrderedPackage $package) {
             return $package->getCarrierId();
         }, $this->packages);
+    }
+
+    /**
+     * @param string|null $labelsUrl
+     *
+     * @return void
+     */
+    public function setLabelsUrl(?string $labelsUrl): void
+    {
+        $this->labelsUrl = $labelsUrl;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getLabelsUrl(): ?string
+    {
+        return $this->labelsUrl;
     }
 
     /**
@@ -119,19 +150,9 @@ class OrderedPackageCollection implements IteratorAggregate, Countable, ArrayAcc
     }
 
     /**
-     * Get an iterator for the items.
+     * Determine if an item exists at an offset
      *
-     * @return \ArrayIterator
-     */
-    public function getIterator(): ArrayIterator
-    {
-        return new ArrayIterator($this->packages);
-    }
-
-    /**
-     * Determine if an item exists at an offset.
-     *
-     * @param string $key
+     * @param int $key
      *
      * @return bool
      */
@@ -141,9 +162,9 @@ class OrderedPackageCollection implements IteratorAggregate, Countable, ArrayAcc
     }
 
     /**
-     * Get an item at a given offset.
+     * Get an item at a given offset
      *
-     * @param string $key
+     * @param int $key
      *
      * @return \Inspirum\Balikobot\Model\Values\OrderedPackage
      */
@@ -153,9 +174,9 @@ class OrderedPackageCollection implements IteratorAggregate, Countable, ArrayAcc
     }
 
     /**
-     * Set the item at a given offset.
+     * Set the item at a given offset
      *
-     * @param string                                          $key
+     * @param int                                             $key
      * @param \Inspirum\Balikobot\Model\Values\OrderedPackage $value
      *
      * @return void
@@ -168,9 +189,9 @@ class OrderedPackageCollection implements IteratorAggregate, Countable, ArrayAcc
     }
 
     /**
-     * Unset the item at a given offset.
+     * Unset the item at a given offset
      *
-     * @param string $key
+     * @param int $key
      *
      * @return void
      */
@@ -187,5 +208,15 @@ class OrderedPackageCollection implements IteratorAggregate, Countable, ArrayAcc
     public function count(): int
     {
         return count($this->packages);
+    }
+
+    /**
+     * Get an iterator for the items
+     *
+     * @return \ArrayIterator<int,\Inspirum\Balikobot\Model\Values\OrderedPackage>
+     */
+    public function getIterator(): ArrayIterator
+    {
+        return new ArrayIterator($this->packages);
     }
 }

@@ -67,6 +67,31 @@ class AddRequestTest extends AbstractClientTestCase
         $client->addPackages('cp', []);
     }
 
+    public function testThrowsExceptionWhenWrongNumberOfPackages()
+    {
+        $this->expectException(BadRequestException::class);
+
+        $requester = $this->newRequesterWithMockedRequestMethod(200, [
+            'status' => 200,
+            0        => [
+                'carrier_id' => 'NP1504102246M',
+                'package_id' => 42719,
+                'label_url'  => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoA.',
+                'status'     => '200',
+            ],
+            1        => [
+                'carrier_id' => 'NP1504102247M',
+                'package_id' => 42720,
+                'label_url'  => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoA.',
+                'status'     => '200',
+            ],
+        ]);
+
+        $client = new Client($requester);
+
+        $client->addPackages('cp', [['eid' => 1]]);
+    }
+
     public function testMakeRequest()
     {
         $requester = $this->newRequesterWithMockedRequestMethod(200, [
@@ -81,11 +106,11 @@ class AddRequestTest extends AbstractClientTestCase
 
         $client = new Client($requester);
 
-        $client->addPackages('cp', ['data' => [1, 2, 3], 'test' => false]);
+        $client->addPackages('cp', [['data' => [1, 2, 3], 'test' => false]]);
 
         $requester->shouldHaveReceived(
             'request',
-            ['https://api.balikobot.cz/cp/add', ['data' => [1, 2, 3], 'test' => false]]
+            ['https://api.balikobot.cz/cp/add', [['data' => [1, 2, 3], 'test' => false]]]
         );
 
         $this->assertTrue(true);
@@ -112,7 +137,7 @@ class AddRequestTest extends AbstractClientTestCase
 
         $client = new Client($requester);
 
-        $packages = $client->addPackages('cp', []);
+        $packages = $client->addPackages('cp', [['eid' => '0001'], ['eid' => '0002']]);
 
         $this->assertEquals(
             [
@@ -131,5 +156,80 @@ class AddRequestTest extends AbstractClientTestCase
             ],
             $packages
         );
+    }
+
+    public function testLabelsUrl()
+    {
+        $requester = $this->newRequesterWithMockedRequestMethod(200, [
+            'status'     => 200,
+            'labels_url' => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoC.',
+            0            => [
+                'carrier_id' => 'NP1504102246M',
+                'package_id' => 42719,
+                'label_url'  => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoA.',
+                'status'     => '200',
+            ],
+            1            => [
+                'carrier_id' => 'NP1504102247M',
+                'package_id' => 42720,
+                'label_url'  => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoB.',
+                'status'     => '200',
+            ],
+        ]);
+
+        $client    = new Client($requester);
+        $labelsUrl = null;
+
+        $client->addPackages('cp', [['eid' => '0001'], ['eid' => '0002']], null, $labelsUrl);
+
+        $this->assertEquals('https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoC.', $labelsUrl);
+    }
+
+    public function testMakeV2Request()
+    {
+        $requester = $this->newRequesterWithMockedRequestMethod(200, [
+            'status' => 200,
+            0        => [
+                'carrier_id' => 'NP1504102246M',
+                'package_id' => 42719,
+                'label_url'  => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoA.',
+                'status'     => '200',
+            ],
+        ]);
+
+        $client = new Client($requester);
+
+        $client->addPackages('ups', [['data' => [1, 2, 3], 'test' => false]], 'v2');
+
+        $requester->shouldHaveReceived(
+            'request',
+            ['https://api.balikobot.cz/v2/ups/add', [['data' => [1, 2, 3], 'test' => false]]]
+        );
+
+        $this->assertTrue(true);
+    }
+
+    public function testMakeRequestWithUnsopportedVersion()
+    {
+        $requester = $this->newRequesterWithMockedRequestMethod(200, [
+            'status' => 200,
+            0        => [
+                'carrier_id' => 'NP1504102246M',
+                'package_id' => 42719,
+                'label_url'  => 'https://pdf.balikobot.cz/cp/eNorMTIwt9A1NbYwMwdcMBAZAoA.',
+                'status'     => '200',
+            ],
+        ]);
+
+        $client = new Client($requester);
+
+        $client->addPackages('cp', [['data' => [1, 2, 3], 'test' => false]], 'v3');
+
+        $requester->shouldHaveReceived(
+            'request',
+            ['https://api.balikobot.cz/cp/add', [['data' => [1, 2, 3], 'test' => false]]]
+        );
+
+        $this->assertTrue(true);
     }
 }

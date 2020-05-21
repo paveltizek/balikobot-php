@@ -2,7 +2,7 @@
 
 namespace Inspirum\Balikobot\Definitions;
 
-class ServiceType
+final class ServiceType
 {
     /**
      * Balík do ruky
@@ -12,63 +12,77 @@ class ServiceType
     public const CP_DR = 'DR';
 
     /**
-     * Doporučená zásilka
+     * Doporučená zásilka Ekonomická
      *
      * @var string
      */
     public const CP_RR = 'RR';
 
     /**
-     * na poštu
+     * Balík Na poštu
      *
      * @var string
      */
     public const CP_NP = 'NP';
 
     /**
-     * balík do ruky pro vybrané podavatele
+     * Balík do ruky pro vybrané podavatele
      *
      * @var string
      */
     public const CP_DV = 'DV';
 
     /**
-     * cenné psaní
+     * Cenné psaní
      *
      * @var string
      */
     public const CP_VL = 'VL';
 
     /**
-     * doporučená zásilka standard
+     * Doporučená zásilka Ekonomická - standard
      *
      * @var string
      */
     public const CP_SR = 'SR';
 
     /**
-     * doporučený balíček
+     * Doporučená zásilka Prioritní
+     *
+     * @var string
+     */
+    public const CP_RRP = 'RRP';
+
+    /**
+     * Doporučená zásilka Prioritní - standard
+     *
+     * @var string
+     */
+    public const CP_SRP = 'SRP';
+
+    /**
+     * Doporučený balíček
      *
      * @var string
      */
     public const CP_BA = 'BA';
 
     /**
-     * cenný balík
+     * Cenný balík
      *
      * @var string
      */
     public const CP_BB = 'BB';
 
     /**
-     * balík nadrozměr
+     * Balík nadrozměr
      *
      * @var string
      */
     public const CP_BN = 'BN';
 
     /**
-     * balík do balíkovny
+     * Balík do balíkovny
      *
      * @var string
      */
@@ -82,7 +96,7 @@ class ServiceType
     public const CP_DT = 'DT';
 
     /**
-     * balík Do ruky s garantovaným časem dodání v neděli nebo svátek
+     * Balík Do ruky s garantovaným časem dodání v neděli nebo svátek
      *
      * @var string
      */
@@ -159,6 +173,13 @@ class ServiceType
     public const CP_CE = 'CE';
 
     /**
+     * PPL Parcel Business CZ
+     *
+     * @var string
+     */
+    public const PPL_PARCEL_BUSSINESS_CZ = '1';
+
+    /**
      * PPL Parcel Connect (exportní balík)
      *
      * @var string
@@ -192,6 +213,13 @@ class ServiceType
      * @var string
      */
     public const PPL_PRIVATE_EVENING = '9';
+
+    /**
+     * PPl Parcel Import
+     *
+     * @var string
+     */
+    public const PPL_PARCEL_IMPORT = '11';
 
     /**
      * PPL Firemní paleta
@@ -316,28 +344,28 @@ class ServiceType
     public const GEIS_PARCEL_GARANTED = '7';
 
     /**
-     *  Doručení do 12. hodin (D12)
+     * Doručení do 12. hodin (D12)
      *
      * @var string
      */
     public const GEIS_PARCEL_12 = '8';
 
     /**
-     * Mezinárodní zásilka (B2C) do SK / PL
+     * Mezinárodní zásilka (B2C)
      *
      * @var string
      */
     public const GEIS_PARCEL_PRIVATE_INTERNATIONAL = '9';
 
     /**
-     * – Vnitrostátní paletová zásilka B2C
+     * Vnitrostátní paletová zásilka B2C
      *
      * @var string
      */
     public const GEIS_CARGO_PRIVATE_NATIONAL = '10';
 
     /**
-     * Mezinárodní paletová zásilka B2C do SK
+     * Mezinárodní paletová zásilka B2C
      *
      * @var string
      */
@@ -363,6 +391,27 @@ class ServiceType
      * @var string
      */
     public const GLS_EXPRESS = '3';
+
+    /**
+     * Guaranteed 24 Service Business Parcel
+     *
+     * @var string
+     */
+    public const GLS_GUARANTEED24 = '4';
+
+    /**
+     * "Guaranteed 24 Service Express Parcel
+     *
+     * @var string
+     */
+    public const GLS_GUARANTEED24_EXPRESS = '5';
+
+    /**
+     * Guaranteed 24 Service ShopDelivery
+     *
+     * @var string
+     */
+    public const GLS_GUARANTEED24_SHOP = '6';
 
     /**
      * Small Colli 24-CZ
@@ -412,6 +461,20 @@ class ServiceType
      * @var string
      */
     public const INTIME_EXTRA_CZ = '7';
+
+    /**
+     * Parcel EU
+     *
+     * @var string
+     */
+    public const INTIME_PARCEL_EU = '8';
+
+    /**
+     * Parcel EU+
+     *
+     * @var string
+     */
+    public const INTIME_PARCEL_EU_PLUS = '9';
 
     /**
      * 24 hodin (Standard)
@@ -547,6 +610,13 @@ class ServiceType
     public const SPS_EXPRESS_9 = '3';
 
     /**
+     * Export (mezinárodní zásilky)
+     *
+     * @var string
+     */
+    public const SPS_INTERNATIONAL = '4';
+
+    /**
      * Uloženka
      *
      * @var string
@@ -640,9 +710,523 @@ class ServiceType
     /**
      * Zasilkovna
      *
+     * @deprecated
+     *
      * @var string|null
      */
     public const ZASILKOVNA = null;
+
+    /**
+     * Výdejní místa Česká republika
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_VMCZ = 'VMCZ';
+
+    /**
+     * Výdejní místa Slovenská republika
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_VMSK = 'VMSK';
+
+    /**
+     * Výdejní místa Maďarsko
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_VMHU = 'VMHU';
+
+    /**
+     * Výdejní místa Polsko
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_VMPL = 'VMPL';
+
+    /**
+     * Výdejní místa Rumunsko
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_VMRO = 'VMRO';
+
+    /**
+     * Rakouská pošta
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_AT_POST = '80';
+
+    /**
+     * BE Post
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_BE_POST = '4832';
+
+    /**
+     * Bulharsko Speedy Office
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_BG_SPEEDY_OFFICE = '4017';
+
+    /**
+     * Bulharsko Speedy Home
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_BG_SPEEDY_HOME = '4015';
+
+    /**
+     * Česká pošta
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_CZ_POST = '13';
+
+    /**
+     *
+     * CZ - Nejvýhodnější doručení na adresu
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_CZ_COURIER = '106';
+
+    /**
+     * Expresní doručení Ostrava
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_CZ_EXPRESS_OSTRAVA = '134';
+
+    /**
+     * Expresní doručení Brno
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_CZ_EXPRESS_BRNO = '136';
+
+    /**
+     * Česká republika InTime
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_CZ_INTIME = '153';
+
+    /**
+     * Expresní doručení Praha
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_CZ_EXPRESS_PRAHA = '257';
+
+    /**
+     * Česká republika DPD
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_CZ_DPD = '633';
+
+    /**
+     * Německá pošta
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_DE_POST = '111';
+
+    /**
+     * Německo Hermes
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_DE_HERMES = '3946';
+
+    /**
+     * DK Post Nord Home
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_DK_HOME = '4993';
+
+    /**
+     * DK Post Nord pp
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_DK_PICKUP = '4994';
+
+    /**
+     * EE Omniva Home
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_EE_HOME = '5060';
+
+    /**
+     * EE Omniva pickup
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_EE_PICKUP = '5061';
+
+    /**
+     * EE Omniva Box
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_EE_BOX = '5062';
+
+    /**
+     * ES MRW Home
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_ES_HOME = '4653';
+
+    /**
+     * Španělsko Correos
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_ES_CORREOS = '4638';
+
+    /**
+     * FI Post Nord Home
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_FI_HOME = '4830';
+
+    /**
+     * FI Post Nord Pickup Point
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_FI_PICKUP = '4828';
+
+    /**
+     * Francie Colissimo Home
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_FR_HOME = '4309';
+
+    /**
+     * Spojené království Royal Mail 48
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_GB_ROYAL_MAIL_48 = '4857';
+
+    /**
+     * Spojené království Hermes
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_GB_HERMES = '3885';
+
+    /**
+     * Spojené království Royal Mail
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_GB_ROYAL_MAIL = '1120';
+
+    /**
+     * Spojené království Royal Mail 24
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_GB_ROYAL_MAIL_24 = '4856';
+
+    /**
+     * Recko Speedy Home
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_GR_HOME = '4738';
+
+    /**
+     * Chorvatská Pošta - Výdejní místo
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_HR_POST = '4635';
+
+    /**
+     * Chorvatská Pošta - doručení na adresu
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_HR_ADDRESS = '4634';
+
+    /**
+     * Chorvatsko DPD Home
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_HR_HDPD = '4646';
+
+    /**
+     * HU - best delivery solution
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_HU_COURIER = '4159';
+
+    /**
+     * Maďarsko Express One (Transoflex)
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_HU_EXPRESS = '151';
+
+    /**
+     * Maďarsko DPD
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_HU_DPD = '805';
+
+    /**
+     * Maďarská pošta
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_HU_POST = '763';
+
+    /**
+     * Švýcarsko-Lichtenštejnská Pošta - prioritní
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_CH_POST_PRIORITY = '3870';
+
+    /**
+     * Švýcarsko-Lichtejnštejnská Pošta
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_CH_POST = '3294';
+
+    /**
+     * Irsko Hermes
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_IE_HERMES = '4524';
+
+    /**
+     * Itálie GLS
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_IT_GLS = '2726';
+
+    /**
+     * LT Omniva Box
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_LT_BOX = '5066';
+
+    /**
+     * LU DPD
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_LU_DPD = '4834';
+
+    /**
+     * LV Omniva Box
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_LV_BOX = '5064';
+
+    /**
+     * LV Omniva Home
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_LV_HOME = '5063';
+
+    /**
+     * NL Post
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_NL_POST = '4329';
+
+    /**
+     * Polsko Paczkomaty
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_PL_PACZKOMATY = '3060';
+
+    /**
+     * Polsko DPD
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_PL_DPD = '1406';
+
+    /**
+     * PL - best delivery solution
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_PL_COURIER = '4162';
+
+    /**
+     * Polská pošta
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_PL_POST = '272';
+
+    /**
+     * Polská pošta 24h
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_PL_POST_24 = '1438';
+
+    /**
+     * Polsko InPost
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_PL_INPOST = '3603';
+
+    /**
+     * PT MRW Home
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_PT_HOME = '4655';
+
+    /**
+     * Rumunsko FAN
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_RO_FAN = '762';
+
+    /**
+     * RO - best delivery solution
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_RO_COUTIER = '4161';
+
+    /**
+     * Rumunsko DPD
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_RO_DPD = '836';
+
+    /**
+     * Rumunsko Cargus
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_RO_CARGUS = '590';
+
+    /**
+     * RU Post EMS
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_RU_EMS = '5101';
+
+    /**
+     * RU Post Registered Packet
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_RU_POST_PACKET = '5102';
+
+    /**
+     * Ruská pošta
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_RU_POST = '4559';
+
+    /**
+     * SE Post Nord Home
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_SE_HOME = '4827';
+
+    /**
+     * SE Post Nord pp
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_SE_PICKUP = '4826';
+
+    /**
+     * SI DPD Pickup
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_SI_DPD_PICKUP = '4950';
+
+    /**
+     * SI DPD Home
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_SI_DPD_HOME = '4949';
+
+    /**
+     * Slovensko GLS
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_SK_GLS = '149';
+
+    /**
+     * Expresné doručenie Bratislava
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_SK_EXPRESS_BRATISLAVA = '132';
+
+    /**
+     * SK - Best delivery solution
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_SK_COURIER = '131';
+
+    /**
+     * Slovenská pošta
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_SK_POST = '16';
+
+    /**
+     * Ukrajina Nova Poshta
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_UK_POST = '3616';
+
+    /**
+     * Ukrajina Rosan
+     *
+     * @var string
+     */
+    public const ZASILKOVNA_UK_ROSAN = '1160';
 
     /**
      * DHL
@@ -834,27 +1418,6 @@ class ServiceType
     public const DHL_DOMESTIC_EXPRESS = '7';
 
     /**
-     * Parcel
-     *
-     * @var string
-     */
-    public const DHLSK_PARCEL = '1';
-
-    /**
-     * Parcel International
-     *
-     * @var string
-     */
-    public const DHLSK_PARCEL_INTERNATIONAL = '2';
-
-    /**
-     * Parcel Business
-     *
-     * @var string
-     */
-    public const DHLSK_PARCEL_BUSSINESS = '3';
-
-    /**
      * Express
      *
      * @var string
@@ -967,7 +1530,131 @@ class ServiceType
     public const TNT_NIGHT_EXPRESS_12 = '12';
 
     /**
-     * @return array
+     * Night Express 06:00
+     *
+     * @var string
+     */
+    public const TNT_NIGHT_EXPRESS_6 = '13';
+
+    /**
+     * Night Express 07:00
+     *
+     * @var string
+     */
+    public const TNT_NIGHT_EXPRESS_7 = '14';
+
+    /**
+     * Night Express 14:00
+     *
+     * @var string
+     */
+    public const TNT_NIGHT_EXPRESS_14 = '15';
+
+    /**
+     * Special economy express
+     *
+     * @var string
+     */
+    public const TNT_SPECIAL_ECONOMY_EXPRESS = '16';
+
+    /**
+     * Priority Goods 9:00
+     *
+     * @var string
+     */
+    public const GW_PRIORITY_9 = 'P9';
+
+    /**
+     * Priority Goods 12:00
+     *
+     * @var string
+     */
+    public const GW_PRIORITY_12 = 'P12';
+
+    /**
+     * Priority Goods 16:00
+     *
+     * @var string
+     */
+    public const GW_PRIORITY_16 = 'P16';
+
+    /**
+     * Direct Goods
+     *
+     * @var string
+     */
+    public const GW_DIRECT_GOODS = 'WDG';
+
+    /**
+     * Pick Up
+     *
+     * @var string
+     */
+    public const GW_PICKUP = 'BES';
+
+    /**
+     * Pickup by Consignee
+     *
+     * @var string
+     */
+    public const GW_PICKUP_BY_CONSIGNEE = 'SA';
+
+    /**
+     * Domestic PRON
+     *
+     * @var string
+     */
+    public const GW_DOMESTIC = 'W24';
+
+    /**
+     * HDS - Home Delivery Services
+     *
+     * @var string
+     */
+    public const GW_HOME_DELIVERY = 'HDS';
+
+    /**
+     * Export PROI
+     *
+     * @var string
+     */
+    public const GW_EXPORT = 'EUR';
+
+    /**
+     * Domestic PRON
+     *
+     * @var string
+     */
+    public const GW_W24 = 'W24';
+
+    /**
+     * Domestic 8:00 - 12:00
+     *
+     * @var string
+     */
+    public const GW_D8 = 'D8';
+
+    /**
+     * Domestic 12:00 - 14:00
+     *
+     * @var string
+     */
+    public const GW_D12 = 'D12';
+    /**
+     * Domestic 14:00 - 18:00
+     *
+     * @var string
+     */
+    public const GW_D14 = 'D14';
+    /**
+     * Export PROI
+     *
+     * @var string
+     */
+    public const GW_EUR = 'EUR';
+
+    /**
+     * @return array<string>
      */
     public static function cp(): array
     {
@@ -975,6 +1662,8 @@ class ServiceType
             self::CP_DR,
             self::CP_RR,
             self::CP_SR,
+            self::CP_RRP,
+            self::CP_SRP,
             self::CP_NP,
             self::CP_VL,
             self::CP_DV,
@@ -998,7 +1687,7 @@ class ServiceType
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public static function dpd(): array
     {
@@ -1015,7 +1704,7 @@ class ServiceType
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public static function dhl(): array
     {
@@ -1031,19 +1720,7 @@ class ServiceType
     }
 
     /**
-     * @return array
-     */
-    public static function dhlsk(): array
-    {
-        return [
-            self::DHLSK_PARCEL,
-            self::DHLSK_PARCEL_INTERNATIONAL,
-            self::DHLSK_PARCEL_BUSSINESS,
-        ];
-    }
-
-    /**
-     * @return array
+     * @return array<string>
      */
     public static function geis(): array
     {
@@ -1063,7 +1740,7 @@ class ServiceType
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public static function gls(): array
     {
@@ -1071,11 +1748,14 @@ class ServiceType
             self::GLS_BUSINESS,
             self::GLS_SHOP,
             self::GLS_EXPRESS,
+            self::GLS_GUARANTEED24,
+            self::GLS_GUARANTEED24_EXPRESS,
+            self::GLS_GUARANTEED24_SHOP,
         ];
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public static function intime(): array
     {
@@ -1083,21 +1763,23 @@ class ServiceType
             self::INTIME_SMALL_CZ,
             self::INTIME_MEDIUM_CZ,
             self::INTIME_LARGE_CZ,
-            // self::INTIME_POSTOMAT_CZ,
+            self::INTIME_POSTOMAT_CZ,
             // self::INTIME_POSTOMAT_SK,
             self::INTIME_LARGE_SK,
             self::INTIME_EXTRA_CZ,
+            self::INTIME_PARCEL_EU,
+            self::INTIME_PARCEL_EU_PLUS,
         ];
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public static function pbh(): array
     {
         return [
             self::PBH_DHL,
-            self::PBH_GLS,
+            // self::PBH_GLS,
             self::PBH_UPS,
             self::PBH_SP,
             self::PBH_TRANSOFLEX,
@@ -1120,7 +1802,7 @@ class ServiceType
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public static function ppl(): array
     {
@@ -1136,7 +1818,7 @@ class ServiceType
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public static function sp(): array
     {
@@ -1155,7 +1837,7 @@ class ServiceType
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public static function sps(): array
     {
@@ -1163,11 +1845,12 @@ class ServiceType
             self::SPS_EXPRESS,
             self::SPS_EXPRESS_12,
             self::SPS_EXPRESS_9,
+            self::SPS_INTERNATIONAL,
         ];
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public static function topTrans(): array
     {
@@ -1182,7 +1865,7 @@ class ServiceType
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public static function ulozenka(): array
     {
@@ -1204,7 +1887,7 @@ class ServiceType
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public static function ups(): array
     {
@@ -1217,17 +1900,89 @@ class ServiceType
     }
 
     /**
-     * @return array
+     * @return array<mixed>
      */
     public static function zasilkovna(): array
     {
         return [
-            self::ZASILKOVNA,
+            self::ZASILKOVNA_VMCZ,
+            self::ZASILKOVNA_VMSK,
+            self::ZASILKOVNA_VMHU,
+            self::ZASILKOVNA_VMPL,
+            self::ZASILKOVNA_VMRO,
+            self::ZASILKOVNA_AT_POST,
+            self::ZASILKOVNA_BE_POST,
+            self::ZASILKOVNA_BG_SPEEDY_OFFICE,
+            self::ZASILKOVNA_BG_SPEEDY_HOME,
+            self::ZASILKOVNA_CZ_POST,
+            self::ZASILKOVNA_CZ_COURIER,
+            self::ZASILKOVNA_CZ_EXPRESS_OSTRAVA,
+            self::ZASILKOVNA_CZ_EXPRESS_BRNO,
+            self::ZASILKOVNA_CZ_INTIME,
+            self::ZASILKOVNA_CZ_EXPRESS_PRAHA,
+            self::ZASILKOVNA_CZ_DPD,
+            self::ZASILKOVNA_DE_POST,
+            self::ZASILKOVNA_DE_HERMES,
+            self::ZASILKOVNA_DK_HOME,
+            self::ZASILKOVNA_DK_PICKUP,
+            self::ZASILKOVNA_EE_HOME,
+            self::ZASILKOVNA_EE_PICKUP,
+            self::ZASILKOVNA_EE_BOX,
+            self::ZASILKOVNA_ES_HOME,
+            self::ZASILKOVNA_ES_CORREOS,
+            self::ZASILKOVNA_FI_HOME,
+            self::ZASILKOVNA_FI_PICKUP,
+            self::ZASILKOVNA_FR_HOME,
+            self::ZASILKOVNA_GB_ROYAL_MAIL_48,
+            self::ZASILKOVNA_GB_HERMES,
+            self::ZASILKOVNA_GB_ROYAL_MAIL,
+            self::ZASILKOVNA_GB_ROYAL_MAIL_24,
+            self::ZASILKOVNA_GR_HOME,
+            self::ZASILKOVNA_HR_POST,
+            self::ZASILKOVNA_HR_ADDRESS,
+            self::ZASILKOVNA_HR_HDPD,
+            self::ZASILKOVNA_HU_COURIER,
+            self::ZASILKOVNA_HU_EXPRESS,
+            self::ZASILKOVNA_HU_DPD,
+            self::ZASILKOVNA_HU_POST,
+            self::ZASILKOVNA_CH_POST_PRIORITY,
+            self::ZASILKOVNA_CH_POST,
+            self::ZASILKOVNA_IE_HERMES,
+            self::ZASILKOVNA_IT_GLS,
+            self::ZASILKOVNA_LT_BOX,
+            self::ZASILKOVNA_LU_DPD,
+            self::ZASILKOVNA_LV_BOX,
+            self::ZASILKOVNA_LV_HOME,
+            self::ZASILKOVNA_NL_POST,
+            self::ZASILKOVNA_PL_PACZKOMATY,
+            self::ZASILKOVNA_PL_DPD,
+            self::ZASILKOVNA_PL_COURIER,
+            self::ZASILKOVNA_PL_POST,
+            self::ZASILKOVNA_PL_POST_24,
+            self::ZASILKOVNA_PL_INPOST,
+            self::ZASILKOVNA_PT_HOME,
+            self::ZASILKOVNA_RO_FAN,
+            self::ZASILKOVNA_RO_COUTIER,
+            self::ZASILKOVNA_RO_DPD,
+            self::ZASILKOVNA_RO_CARGUS,
+            self::ZASILKOVNA_RU_EMS,
+            self::ZASILKOVNA_RU_POST_PACKET,
+            self::ZASILKOVNA_RU_POST,
+            self::ZASILKOVNA_SE_HOME,
+            self::ZASILKOVNA_SE_PICKUP,
+            self::ZASILKOVNA_SI_DPD_PICKUP,
+            self::ZASILKOVNA_SI_DPD_HOME,
+            self::ZASILKOVNA_SK_GLS,
+            self::ZASILKOVNA_SK_EXPRESS_BRATISLAVA,
+            self::ZASILKOVNA_SK_COURIER,
+            self::ZASILKOVNA_SK_POST,
+            self::ZASILKOVNA_UK_POST,
+            self::ZASILKOVNA_UK_ROSAN,
         ];
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public static function tnt(): array
     {
@@ -1244,13 +1999,49 @@ class ServiceType
             self::TNT_EXPRESS_DOCUMENTS_10,
             self::TNT_EXPRESS_DOCUMENTS_12,
             self::TNT_NIGHT_EXPRESS_12,
+            self::TNT_NIGHT_EXPRESS_6,
+            self::TNT_NIGHT_EXPRESS_7,
+            self::TNT_NIGHT_EXPRESS_14,
+            self::TNT_SPECIAL_ECONOMY_EXPRESS,
         ];
     }
 
     /**
-     * All supported shipper services.
+     * @return array<string>
+     */
+    public static function gw(): array
+    {
+        return [
+            self::GW_DOMESTIC,
+            self::GW_HOME_DELIVERY,
+            self::GW_PRIORITY_9,
+            self::GW_PRIORITY_12,
+            self::GW_PRIORITY_16,
+            self::GW_DIRECT_GOODS,
+            self::GW_EXPORT,
+            self::GW_PICKUP,
+            self::GW_PICKUP_BY_CONSIGNEE,
+        ];
+    }
+
+    /**
+     * @return array<string>
+     */
+    public static function gwcz(): array
+    {
+        return [
+            self::GW_W24,
+            self::GW_D8,
+            self::GW_D12,
+            self::GW_D14,
+            self::GW_EUR,
+        ];
+    }
+
+    /**
+     * All supported shipper services
      *
-     * @return array
+     * @return array<string,array<string>>
      */
     public static function all(): array
     {
@@ -1258,7 +2049,6 @@ class ServiceType
             Shipper::CP         => self::cp(),
             Shipper::DPD        => self::dpd(),
             Shipper::DHL        => self::dhl(),
-            Shipper::DHLSK      => self::dhlsk(),
             Shipper::GEIS       => self::geis(),
             Shipper::GLS        => self::gls(),
             Shipper::INTIME     => self::intime(),
@@ -1266,11 +2056,13 @@ class ServiceType
             Shipper::PPL        => self::ppl(),
             Shipper::SP         => self::sp(),
             Shipper::SPS        => self::sps(),
-            Shipper::TOP_TRANS  => self::topTrans(),
+            Shipper::TOPTRANS   => self::topTrans(),
             Shipper::ULOZENKA   => self::ulozenka(),
             Shipper::UPS        => self::ups(),
             Shipper::ZASILKOVNA => self::zasilkovna(),
             Shipper::TNT        => self::tnt(),
+            Shipper::GW         => self::gw(),
+            Shipper::GWCZ       => self::gwcz(),
         ];
     }
 }
